@@ -1,16 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 
 export interface PortalState {
-  // 0 = hitam, 1 = portal fully open (Balatro visible)
   portalProgress: number
-  // true saat portal sedang terbuka / terbuka penuh
   isOpen: boolean
-  // raw scroll progress 0-1
   scrollProgress: number
 }
 
 
-export function useScrollPortal(): PortalState {
+export function useScroll(): PortalState {
   const [state, setState] = useState<PortalState>({
     portalProgress: 0,
     isOpen: false,

@@ -38,7 +38,7 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const navRef       = useRef<HTMLUListElement>(null);
   const textRef      = useRef<HTMLSpanElement>(null);
-  const bgRef        = useRef<HTMLSpanElement>(null); // clean square bg — no gooey filter
+  const bgRef        = useRef<HTMLSpanElement>(null);
   const [activeIndex, setActiveIndex] = useState<number>(initialActiveIndex);
 
   useEffect(() => { setActiveIndex(initialActiveIndex); }, [initialActiveIndex]);
@@ -60,7 +60,6 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
     };
   };
 
-  // Particle burst — attached to bgRef (no filter, just absolute positioned sparks)
   const makeParticles = (element: HTMLElement) => {
     const d: [number, number] = particleDistances;
     const r = particleR;
@@ -108,13 +107,11 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
     if (activeIndex === index) return;
     setActiveIndex(index);
     updateEffectPosition(liEl);
-    // Restart text animation
     if (textRef.current) {
       textRef.current.classList.remove('sq-text-active');
       void textRef.current.offsetWidth;
       textRef.current.classList.add('sq-text-active');
     }
-    // Particle burst
     if (bgRef.current) makeParticles(bgRef.current);
   };
 
@@ -150,8 +147,6 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
           --sq-color-3: #FFAA33;
           --sq-color-4: #FF6600;
         }
-
-        /* ── Clean square background — NO gooey filter ── */
         .sq-bg {
           position: absolute;
           pointer-events: none;
@@ -165,8 +160,6 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
           from { opacity: 0; transform: scaleX(0.6) scaleY(0.8); }
           to   { opacity: 1; transform: scaleX(1)   scaleY(1); }
         }
-
-        /* ── Text overlay — always white, sharp ── */
         .sq-text {
           position: absolute;
           pointer-events: none;
@@ -180,11 +173,7 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
           transition: color 0.15s ease;
         }
         .sq-text.sq-text-active { color: white; }
-
-        /* ── Hide original li text when active ── */
         li.active > a { color: transparent !important; }
-
-        /* ── Particles — no filter needed, just CSS keyframes ── */
         .sq-particle {
           display: block;
           opacity: 0;
@@ -247,10 +236,7 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
             ))}
           </ul>
         </nav>
-
-        {/* Clean square bg — replaces gooey filter span */}
         <span className="sq-bg" ref={bgRef} />
-        {/* Text overlay on top of bg */}
         <span className="sq-text" ref={textRef} />
       </div>
     </>
@@ -270,15 +256,17 @@ export default function Navbar() {
     restDelta: 0.001,
   });
 
-  const [scrolled,     setScrolled]     = useState(false);
-  const [activeIndex,  setActiveIndex]  = useState(0);
+  const [scrolled,    setScrolled]    = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useMotionValueEvent(scrollYProgress, 'change', v => {
     setScrolled(v > 0.07);
   });
 
   useEffect(() => {
+    // sections sesuai urutan nav items
     const sections = ['about', 'skills', 'projects', 'contact'];
+
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
@@ -288,12 +276,19 @@ export default function Navbar() {
           }
         });
       },
-      { threshold: 0.4 }
+      {
+        // rootMargin: top -20% agar trigger saat section masuk ~20% dari atas viewport
+        // bottom -40% agar tidak trigger terlalu dini dari bawah
+        rootMargin: '-20% 0px -40% 0px',
+        threshold: 0,   // cukup 1px masuk zona rootMargin
+      }
     );
+
     sections.forEach(id => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
+
     return () => observer.disconnect();
   }, []);
 

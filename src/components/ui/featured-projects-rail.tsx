@@ -1,9 +1,11 @@
 import * as React from "react";
+import { useRef } from "react";
 import { ChevronRight, X, ExternalLink } from "lucide-react";
 import { Button } from "./button";
 import { cn } from "../../lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
+import { gsap } from "gsap";
 
 export type FeaturedProject = {
   id: string;
@@ -16,43 +18,135 @@ export type FeaturedProject = {
   link?: string;
 };
 
-function Tag({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center border border-white/20 bg-black/50 px-3 py-1 text-[10px] font-mono text-white/50 backdrop-blur-sm hover:border-white/40 hover:text-white/80 transition-all">
-      {children}
-    </span>
-  );
-}
+// ─── CSS keyframes injected once ─────────────────────────────────────────────
+const MARQUEE_STYLE = `
+  @keyframes marquee-left {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  @keyframes marquee-right {
+    0%   { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+  }
+  .marquee-left {
+    animation: marquee-left 35s linear infinite;
+  }
+  .marquee-right {
+    animation: marquee-right 40s linear infinite;
+  }
+  .marquee-paused {
+    animation-play-state: paused !important;
+  }
+`;
 
-function ProjectCard({
+// ─── Rail color themes ────────────────────────────────────────────────────────
+const RAIL_THEMES = {
+  amber: {
+    border:      "rgba(200,120,30,0.25)",
+    borderHover: "rgba(200,120,30,0.6)",
+    tagBorder:   "rgba(200,120,30,0.2)",
+    tagText:     "rgba(200,120,30,0.6)",
+    tagHoverBorder: "rgba(200,120,30,0.5)",
+    tagHoverText:   "rgba(200,120,30,0.9)",
+    glow:        "rgba(200,120,30,0.07)",
+    accent:      "rgba(200,120,30,0.15)",
+  },
+  cyan: {
+    border:      "rgba(34,211,238,0.2)",
+    borderHover: "rgba(34,211,238,0.5)",
+    tagBorder:   "rgba(34,211,238,0.15)",
+    tagText:     "rgba(34,211,238,0.5)",
+    tagHoverBorder: "rgba(34,211,238,0.45)",
+    tagHoverText:   "rgba(34,211,238,0.85)",
+    glow:        "rgba(34,211,238,0.05)",
+    accent:      "rgba(34,211,238,0.12)",
+  },
+} as const;
+
+type RailTheme = keyof typeof RAIL_THEMES;
+
+// ─── Themed ProjectCard ───────────────────────────────────────────────────────
+function ThemedProjectCard({
   project,
+  theme,
   className,
+  onHoverChange,
 }: {
   project: FeaturedProject;
+  theme: RailTheme;
   className?: string;
+  onHoverChange?: (hovered: boolean) => void;
 }) {
   const [, setLocation] = useLocation();
-  
-  const handleClick = () => {
-    if (project.link) {
-      setLocation(project.link);
-    }
+  const t = RAIL_THEMES[theme];
+  const cardRef    = useRef<HTMLElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  const cardBgMap: Record<RailTheme, string> = {
+    amber: "rgba(200,120,30,0.25)",
+    cyan:  "rgba(34,211,238,0.18)",
+  };
+
+  const findClosestEdge = (mouseX: number, mouseY: number, w: number, h: number): "top" | "bottom" => {
+    const top    = Math.pow(mouseX - w / 2, 2) + Math.pow(mouseY, 2);
+    const bottom = Math.pow(mouseX - w / 2, 2) + Math.pow(mouseY - h, 2);
+    return top < bottom ? "top" : "bottom";
+  };
+
+  const handleMouseEnter = (ev: React.MouseEvent<HTMLElement>) => {
+    if (!cardRef.current || !overlayRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const edge = findClosestEdge(ev.clientX - rect.left, ev.clientY - rect.top, rect.width, rect.height);
+    gsap.killTweensOf(overlayRef.current);
+    gsap.fromTo(
+      overlayRef.current,
+      { y: edge === "top" ? "-101%" : "101%" },
+      { y: "0%", duration: 0.45, ease: "expo.out" }
+    );
+    onHoverChange?.(true);
+  };
+
+  const handleMouseLeave = (ev: React.MouseEvent<HTMLElement>) => {
+    if (!cardRef.current || !overlayRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const edge = findClosestEdge(ev.clientX - rect.left, ev.clientY - rect.top, rect.width, rect.height);
+    gsap.killTweensOf(overlayRef.current);
+    gsap.to(overlayRef.current, {
+      y: edge === "top" ? "-101%" : "101%",
+      duration: 0.45,
+      ease: "expo.inOut",
+    });
+    onHoverChange?.(false);
   };
 
   return (
     <article
+      ref={cardRef}
       className={cn(
-        "group relative flex h-[380px] w-[320px] shrink-0 flex-col overflow-hidden border border-white/10 bg-black/50",
-        "transition-all duration-500 hover:-translate-y-2 hover:border-white/30",
+        "group relative flex h-[280px] w-[240px] shrink-0 flex-col overflow-hidden bg-black/50",
+        "transition-[border-color] duration-300",
         project.link && "cursor-pointer",
         className
       )}
-      onClick={project.link ? handleClick : undefined}
+      style={{ border: `1px solid ${t.border}` }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={project.link ? () => setLocation(project.link!) : undefined}
     >
-      {/* Image Section */}
+      {/* Closest-edge color overlay */}
+      <div
+        ref={overlayRef}
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          background: cardBgMap[theme],
+          transform: "translateY(101%)",
+        }}
+      />
+
+      {/* Image */}
       <div
         className={cn(
-          "relative h-[160px] w-full bg-gradient-to-b overflow-hidden",
+          "relative z-10 h-[110px] w-full bg-gradient-to-b overflow-hidden shrink-0",
           project.color ?? "from-neutral-800 to-neutral-900"
         )}
       >
@@ -63,50 +157,100 @@ function ProjectCard({
             className="absolute inset-0 h-full w-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
           />
         )}
-        {/* Overlay effects */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <div className="absolute -left-12 -top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
-        </div>
-        
-        {/* External link icon */}
         {project.link && (
-          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-            <div className="w-10 h-10 border border-white/30 bg-black/50 flex items-center justify-center hover:bg-white hover:text-black transition-all">
-              <ExternalLink className="w-4 h-4" />
+          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+            <div
+              className="w-8 h-8 flex items-center justify-center transition-all"
+              style={{ border: `1px solid ${t.borderHover}`, background: "rgba(0,0,0,0.6)" }}
+            >
+              <ExternalLink className="w-3 h-3" style={{ color: t.tagHoverText }} />
             </div>
           </div>
         )}
       </div>
-      
-      {/* Content Section */}
-      <div className="flex flex-1 flex-col px-6 pb-6 pt-5">
-        <h3 className="text-base font-semibold text-white font-outfit group-hover:text-white/90 transition-colors">
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-1 flex-col px-4 pb-4 pt-3">
+        <h3 className="text-sm font-semibold text-white font-outfit transition-colors">
           {project.title}
         </h3>
-        <p className="mt-3 line-clamp-2 text-sm text-white/40 leading-relaxed">
+        <p className="mt-2 line-clamp-2 text-xs text-white/40 leading-relaxed">
           {project.description}
         </p>
-        <div className="mt-auto flex flex-wrap gap-2 pt-5">
-          {project.tags.map((t) => (
-            <Tag key={t}>{t}</Tag>
+        <div className="mt-auto flex flex-wrap gap-1.5 pt-3">
+          {project.tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center px-2 py-0.5 text-[9px] font-mono transition-all"
+              style={{
+                border: `1px solid ${t.tagBorder}`,
+                color: t.tagText,
+                background: "rgba(0,0,0,0.4)",
+              }}
+            >
+              {tag}
+            </span>
           ))}
         </div>
       </div>
-      
-      {/* Hover shadow effect */}
-      <div 
-        className="absolute inset-0 border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" 
-        style={{ transform: 'translate(6px, 6px)', zIndex: -1 }} 
-      />
-      
+
       {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/0 group-hover:border-white/30 transition-all duration-300" />
-      <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/0 group-hover:border-white/30 transition-all duration-300" />
+      <div
+        className="absolute top-0 left-0 w-4 h-4 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300"
+        style={{ borderTop: `1px solid ${t.borderHover}`, borderLeft: `1px solid ${t.borderHover}` }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-4 h-4 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300"
+        style={{ borderBottom: `1px solid ${t.borderHover}`, borderRight: `1px solid ${t.borderHover}` }}
+      />
     </article>
   );
 }
 
+// ─── Single CSS-animated rail ─────────────────────────────────────────────────
+function ScrollRail({
+  projects,
+  direction = "left",
+  theme,
+}: {
+  projects: FeaturedProject[];
+  direction?: "left" | "right";
+  theme: RailTheme;
+}) {
+  const [paused, setPaused] = React.useState(false);
+
+  const copies = Math.max(4, Math.ceil(8 / projects.length));
+  const repeated = Array.from({ length: copies }, () => projects).flat();
+
+  const animClass = direction === "left" ? "marquee-left" : "marquee-right";
+
+  const [cardHovered, setCardHovered] = React.useState(false);
+
+  return (
+    <div
+      className="overflow-hidden w-full py-3"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div
+        className={cn("flex gap-6 px-6 w-max", animClass, paused && "marquee-paused")}
+        style={{ willChange: "transform" }}
+      >
+        {repeated.map((p, idx) => (
+          <ThemedProjectCard
+            key={`${p.id}-${direction}-${idx}`}
+            project={p}
+            theme={theme}
+            onHoverChange={setCardHovered}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
 export default function FeaturedProjectsRail({
   title,
   subtitle,
@@ -117,21 +261,21 @@ export default function FeaturedProjectsRail({
   projects: FeaturedProject[];
 }) {
   const [showAll, setShowAll] = React.useState(false);
-  const [isPaused, setIsPaused] = React.useState(false);
-
-  const repeatedProjects = [...projects, ...projects, ...projects];
 
   return (
     <div className="relative overflow-hidden py-10">
+      {/* Inject CSS keyframes once */}
+      <style>{MARQUEE_STYLE}</style>
+
       <div className="relative px-6 max-w-7xl mx-auto">
-        {/* Title with decorative lines */}
+        {/* Title */}
         <div className="flex items-center justify-center gap-6 mb-10">
           <div className="h-px w-20 bg-gradient-to-r from-transparent to-white/30" />
           <h2 className="text-sm font-mono text-white/40 tracking-widest">{title}</h2>
           <div className="h-px w-20 bg-gradient-to-l from-transparent to-white/30" />
         </div>
 
-        {/* Subtitle and View All button */}
+        {/* Subtitle & View All */}
         <div className="flex items-end justify-between max-w-7xl mx-auto">
           <div>
             {subtitle && (
@@ -159,36 +303,22 @@ export default function FeaturedProjectsRail({
         </div>
       </div>
 
+      {/* Rails / Grid */}
       <div className="relative mt-10">
         <AnimatePresence mode="wait">
           {!showAll ? (
             <motion.div
-              key="auto-scroll"
+              key="dual-scroll"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex overflow-hidden"
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
+              className="flex flex-col gap-6"
             >
-              <motion.div
-                className="flex gap-6 px-6"
-                animate={{
-                  x: isPaused ? undefined : [0, -1600],
-                }}
-                transition={{
-                  duration: 35,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                {repeatedProjects.map((p, idx) => (
-                  <ProjectCard
-                    key={`${p.id}-${idx}`}
-                    project={p}
-                  />
-                ))}
-              </motion.div>
+              {/* Rail 1 — ke KIRI, warna Amber */}
+              <ScrollRail projects={projects} direction="left" theme="amber" />
+
+              {/* Rail 2 — ke KANAN, warna Cyan */}
+              <ScrollRail projects={projects} direction="right" theme="cyan" />
             </motion.div>
           ) : (
             <motion.div
@@ -200,11 +330,7 @@ export default function FeaturedProjectsRail({
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {projects.map((p) => (
-                  <ProjectCard
-                    key={p.id}
-                    project={p}
-                    className="w-full"
-                  />
+                  <ThemedProjectCard key={p.id} project={p} theme="amber" className="w-full" />
                 ))}
               </div>
             </motion.div>

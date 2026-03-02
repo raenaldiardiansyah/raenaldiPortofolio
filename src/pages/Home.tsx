@@ -11,6 +11,7 @@ import FeaturedProjectsRail from '../components/ui/featured-projects-rail';
 import Navbar               from '../components/ui/navigation-menu';
 import GlareHover           from '../components/ui/GlareHover';
 import RaePeekSection       from '../components/ui/raefont';
+import ContactSection       from '../components/ui/contactsect';
 
 function clamp(v: number, a: number, b: number) { return Math.max(a, Math.min(b, v)); }
 function lerp(a: number, b: number, t: number)  { return a + (b - a) * t; }
@@ -211,7 +212,7 @@ export default function Home() {
 
   const experiences = [
     { period: '2024 — NOW', title: 'Computer Engineering',                     org: 'Telkom University', badge: 'EDUCATION' },
-    { period: '2026 — NOW', title: 'Computer Engineering Student Association', org: 'Telkom University', badge: 'STUDENT ASSOCIATION' },
+    { period: '2026 — NOW', title: 'Internal Relations Department', org: 'Telkom University', badge: 'COMPUTER ENGINEERING STUDENT ASSOCIATION' },
   ];
 
   return (
@@ -361,32 +362,7 @@ export default function Home() {
             </section>
 
             {/* CONTACT */}
-            <section id="contact" className="scroll-mt-24 pb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="relative border border-white/10 p-8 sm:p-16 text-center space-y-10 hover:border-white/30 transition-all duration-500"
-              >
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/20" />
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/20" />
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/20" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/20" />
-                <div className="space-y-6">
-                  <h2 className="text-4xl md:text-5xl font-black tracking-tight font-outfit">
-                    LET'S WORK <span className="text-white/30">TOGETHER</span>
-                  </h2>
-                  <p className="text-white/40 max-w-md mx-auto">Have a project in mind? Let's discuss how we can bring your ideas to life.</p>
-                </div>
-                <a
-                  href="mailto:raenaldi.ardiansyah30@gmail.com"
-                  className="inline-flex items-center gap-4 px-10 py-5 border border-white/30 bg-white/5 hover:bg-white hover:text-black transition-all duration-300 font-mono text-sm group"
-                >
-                  <Mail className="w-4 h-4" />
-                  GET IN TOUCH
-                  <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </a>
-              </motion.div>
-            </section>
+            <ContactSection />      
 
           </main>
 

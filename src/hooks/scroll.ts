@@ -19,10 +19,7 @@ export function useScroll(): PortalState {
   const smoothRef = useRef(0)
 
   useEffect(() => {
-    const onScroll = () => {
-      scrollYRef.current = window.scrollY
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
+
 
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t
     const easeInOut = (t: number) =>
@@ -64,11 +61,6 @@ export function useScroll(): PortalState {
     }
 
     rafRef.current = requestAnimationFrame(tick)
-
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
   }, [])
 
   return state

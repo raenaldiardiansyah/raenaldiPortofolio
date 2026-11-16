@@ -86,6 +86,13 @@ export const projects: Project[] = [
       { label: "Live site", href: "https://kai-challange-frontend.vercel.app" },
       { label: "Source", href: `${GH}/KAI-challange` },
     ],
+    image: {
+      src: "/images/kai-rams.webp",
+      alt: "KAI RAMS operations dashboard: a row of train cars with alarm markers, a priority summary showing a risk score of 94 out of 100 for the brake system, a priority map of the fleet, fleet counts, an alarm chart and a predictive insight with a recommendation.",
+      caption: "Operations dashboard, running on demo data: priority insight with risk score, fleet map, alarms and predictive insight.",
+      width: 1600,
+      height: 796,
+    },
     overview: [
       "RAMS (Rail Assets Monitoring System) collects sensor data from trainsets. This dashboard is the part people look at. An operator opens the overview to see what needs attention first: active alarms, trainsets with a low health score, and the recommended action. A technician opens a single car to inspect its BP/BC telemetry against thresholds.",
     ],

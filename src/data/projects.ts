@@ -238,6 +238,13 @@ export const projects: Project[] = [
       { label: "Live site", href: "https://bojong-travel.vercel.app" },
       { label: "Source", href: `${GH}/Bojong-Travel` },
     ],
+    image: {
+      src: "/images/bojong-travel.webp",
+      alt: "Bojongsoang Travel map page: a sidebar with route search and a live tracking simulation, an OpenStreetMap view of the area, and the BojongBot chat panel open with suggestions for tourism, food and transport.",
+      caption: "Route map with live-tracking simulation, and BojongBot answering questions about food, places and transport.",
+      width: 1600,
+      height: 794,
+    },
     overview: [
       "A bus schedule platform with interactive satellite map simulation and a location-based chatbot for culinary and tourism recommendations.",
     ],

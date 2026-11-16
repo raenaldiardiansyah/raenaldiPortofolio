@@ -90,6 +90,8 @@ export const projects: Project[] = [
       "RAMS (Rail Assets Monitoring System) collects sensor data from trainsets. This dashboard is the part people look at. An operator opens the overview to see what needs attention first: active alarms, trainsets with a low health score, and the recommended action. A technician opens a single car to inspect its BP/BC telemetry against thresholds.",
     ],
     highlights: [
+      "Overview shows the trainset that needs attention first: a 0–100 risk score with the evidence behind it (brake pressure deviation, valve response delay, leak probability), plus actions to open the insight, review evidence or create a work order.",
+      "A priority map of the fleet, an alarm chart and an LLM-generated predictive insight with a recommended check, alongside live counts of active fleet, online cars and global health.",
       "Screens for overview, alarm centre, live monitoring, trainset and car detail, predictive maintenance, work orders and reports.",
       "A service layer that switches between dummy data and the backend API with one environment flag, so the interface could be built before the API existed.",
       "Fleet map with MapLibre GL and trend charts with Recharts, responsive down to mobile.",

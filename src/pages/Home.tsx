@@ -15,6 +15,7 @@ const skills: { group: string; items: string[] }[] = [
 ];
 
 const experience = [
+  { period: "Now", title: "Laboratory Assistant", org: "INACOS Laboratory, Telkom University" },
   { period: "2026 — now", title: "Internal Relations Department", org: "Computer Engineering Student Association, Telkom University" },
   { period: "2024 — now", title: "Computer Engineering", org: "Telkom University" },
 ];

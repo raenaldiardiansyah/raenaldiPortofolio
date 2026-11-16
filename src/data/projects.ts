@@ -115,11 +115,11 @@ export const projects: Project[] = [
       { label: "Source", href: `${GH}/GEMASTIK-2026` },
     ],
     image: {
-      src: "/images/boga-dashboard.webp",
-      alt: "Government dashboard with tiles for active disputes, pending vendors, on-time rate, portions and spending, above a distribution trend chart.",
-      caption: "Government auditor dashboard: on-time delivery rate, portions served and spending.",
-      width: 1440,
-      height: 900,
+      src: "/images/gizantara-landing.webp",
+      alt: "Gizantara landing page: dark navigation bar with Home, Workflow, Security, Roles and Portal, and a section titled 5 operational phases from document verification to teacher review.",
+      caption: "Landing page: the five operational phases, each locked by one documented piece of evidence.",
+      width: 1600,
+      height: 800,
     },
     overview: [
       "The Makan Bergizi Gratis programme moves very large budgets through thousands of kitchen units, and supplier price mark-ups are a known risk. Gizantara (first named B.O.G.A, Blockchain Operasional Gizi Akuntabel) records supplier verification, payments and deliveries so each step can be audited by someone who does not have to trust the party before them.",
@@ -149,6 +149,13 @@ export const projects: Project[] = [
       { label: "Live site", href: "https://tautin-web.vercel.app" },
       { label: "Source", href: `${GH}/BRIN-Competition` },
     ],
+    image: {
+      src: "/images/tautin-landing.webp",
+      alt: "TautIn landing page: headline 'Bangun identitas profesional dari pekerjaan nyata', two buttons, and five folders labelled Project, Contribution, Evidence, Matching and Collaboration.",
+      caption: "Landing page: project, contribution, evidence, matching and collaboration as one flow.",
+      width: 1600,
+      height: 791,
+    },
     overview: [
       "TautIn is a network organised around projects rather than job titles. People show what they contributed, attach evidence for it, and find collaborators through matching they can inspect instead of having to take on faith.",
     ],

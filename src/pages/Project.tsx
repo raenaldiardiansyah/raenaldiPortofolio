@@ -63,9 +63,9 @@ export default function Project() {
               alt={p.image.alt}
               width={p.image.width}
               height={p.image.height}
-              className="w-full border bg-card"
+              className={`border bg-card ${p.image.height > p.image.width ? "w-full max-w-xs" : "w-full"}`}
             />
-            <figcaption className="mt-3 text-sm text-muted-foreground">{p.image.caption}</figcaption>
+            <figcaption className="mt-3 max-w-xl text-sm text-muted-foreground">{p.image.caption}</figcaption>
           </figure>
         )}
 

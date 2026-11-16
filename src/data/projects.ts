@@ -170,9 +170,9 @@ export const projects: Project[] = [
   },
   {
     slug: "rw25-cimahi",
-    title: "Pharmindo25",
+    title: "RW 25 Pharmindo",
     summary:
-      "Resident system for RW 25 Cimahi: residents check social aid, election eligibility, aspirations and event schedules, while administrators keep the records.",
+      "Population and civil-records service for RW 25 Pharmindo in Cimahi Selatan: residents register, check social aid, election eligibility and schedules, and administrators keep the records.",
     category: "Web",
     status: "Live",
     year: "2026",
@@ -186,6 +186,13 @@ export const projects: Project[] = [
       { label: "Live site", href: "https://www.rw25pharmindo.my.id" },
       { label: "Source", href: "https://github.com/Rydhlnst/pharmindo" },
     ],
+    image: {
+      src: "/images/pharmindo.webp",
+      alt: "Phone view of the RW 25 Pharmindo start page: the RW 25 Pharmindo logo, the title Manajemen Kependudukan RW 25 Pharmindo, an illustration of local landmarks, and buttons to sign in or register a resident account.",
+      caption: "Start page on a phone: sign in, or register a resident account that is verified before it is active.",
+      width: 586,
+      height: 1049,
+    },
     overview: [
       "Built as a community service (Abdimas) project for RW 25 in Cimahi. Administrators manage residents, family cards, move-in and move-out records, social aid, activities and document requests. Residents get their own portal for services, schedules and submitting aspirations.",
     ],

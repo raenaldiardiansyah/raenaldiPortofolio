@@ -168,9 +168,9 @@ export const projects: Project[] = [
   },
   {
     slug: "rw25-cimahi",
-    title: "RW 25 Cimahi Resident System",
+    title: "Pharmindo25",
     summary:
-      "Administration system for a neighbourhood unit: resident records, family cards, requests and social-aid data in one place.",
+      "Resident system for RW 25 Cimahi: residents check social aid, election eligibility, aspirations and event schedules, while administrators keep the records.",
     category: "Web",
     status: "Live",
     year: "2026",
@@ -181,8 +181,8 @@ export const projects: Project[] = [
     context: "Community service programme, team project",
     stack: ["Next.js", "Hono", "Drizzle ORM", "PostgreSQL", "better-auth", "Zod"],
     links: [
-      { label: "Live site", href: "https://abdimas-rw-25-cimahi.vercel.app" },
-      { label: "Source", href: `${GH}/ABDIMAS_RW_25_CIMAHI` },
+      { label: "Live site", href: "https://www.rw25pharmindo.my.id" },
+      { label: "Source", href: "https://github.com/Rydhlnst/pharmindo" },
     ],
     overview: [
       "Built as a community service (Abdimas) project for RW 25 in Cimahi. Administrators manage residents, family cards, move-in and move-out records, social aid, activities and document requests. Residents get their own portal for services, schedules and submitting aspirations.",
@@ -192,6 +192,7 @@ export const projects: Project[] = [
       "Resident portal: register, wait for verification, then manage the household, request services and follow schedules.",
       "Hono API with Zod contracts shared between frontend and backend, plus PDF and Excel export for reports.",
       "Authentication with better-auth and Drizzle on serverless Postgres.",
+      "Deployed on its own domain: the backend runs on a VPS with Docker Compose and Nginx, the web front end on Vercel.",
     ],
   },
   {

@@ -12,6 +12,9 @@ export interface Project {
   status: ProjectStatus;
   year: string;
   timeline: string;
+  /** Year-month the work started and ended, for the timeline column. No end means still going. */
+  start: string;
+  end?: string;
   role: string;
   context: string;
   stack: string[];
@@ -34,6 +37,7 @@ export const projects: Project[] = [
     status: "In development",
     year: "2026",
     timeline: "Sep 2026 — now",
+    start: "2026-09",
     role: "Firmware and ROS 2 integration",
     context: "Team project, Telkom University",
     stack: ["ROS 2 Jazzy", "Nav2", "SLAM Toolbox", "STM32F407", "FreeRTOS", "RPLIDAR", "C", "Python"],
@@ -73,6 +77,8 @@ export const projects: Project[] = [
     status: "Live",
     year: "2026",
     timeline: "Jul — Sep 2026",
+    start: "2026-07",
+    end: "2026-09",
     role: "Frontend development",
     context: "KAI challenge, team project",
     stack: ["Next.js", "TypeScript", "MapLibre GL", "Recharts", "Zustand", "FastAPI", "PostgreSQL"],
@@ -99,6 +105,8 @@ export const projects: Project[] = [
     status: "Live",
     year: "2026",
     timeline: "Apr — Aug 2026",
+    start: "2026-04",
+    end: "2026-08",
     role: "Full-stack development",
     context: "GEMASTIK 2026, software development division, team of three",
     stack: ["Next.js", "Express", "Solidity", "Hardhat", "ethers.js", "MapLibre GL", "Turborepo"],
@@ -132,6 +140,8 @@ export const projects: Project[] = [
     status: "Prototype",
     year: "2026",
     timeline: "Jul 2026",
+    start: "2026-07",
+    end: "2026-07",
     role: "Product design and frontend",
     context: "BRIN competition",
     stack: ["Next.js", "TypeScript", "GSAP", "Motion", "pnpm workspaces"],
@@ -158,6 +168,8 @@ export const projects: Project[] = [
     status: "Live",
     year: "2026",
     timeline: "Apr — Jul 2026",
+    start: "2026-04",
+    end: "2026-07",
     role: "Full-stack development",
     context: "Community service programme, team project",
     stack: ["Next.js", "Hono", "Drizzle ORM", "PostgreSQL", "better-auth", "Zod"],
@@ -183,6 +195,8 @@ export const projects: Project[] = [
     status: "Live",
     year: "2026",
     timeline: "Mar 2026",
+    start: "2026-03",
+    end: "2026-03",
     role: "Design and development",
     context: "IoT monitoring",
     stack: ["React", "TypeScript", "MQTT", "Leaflet", "Supabase"],
@@ -207,6 +221,8 @@ export const projects: Project[] = [
     status: "Live",
     year: "2026",
     timeline: "2026",
+    start: "2026-02",
+    end: "2026-03",
     role: "Project lead",
     context: "Web application",
     stack: ["React", "TypeScript", "Leaflet", "Mapbox", "Supabase"],
@@ -231,6 +247,8 @@ export const projects: Project[] = [
     status: "Completed",
     year: "2025–26",
     timeline: "2025 — 2026",
+    start: "2025-01",
+    end: "2026-03",
     role: "Project lead",
     context: "Hardware and web",
     stack: ["ESP32", "MQTT", "C/C++", "KiCad", "React", "React Three Fiber"],
@@ -265,6 +283,8 @@ export const projects: Project[] = [
     status: "Completed",
     year: "2025",
     timeline: "2025",
+    start: "2025-01",
+    end: "2025-12",
     role: "Project lead",
     context: "Embedded system",
     stack: ["ESP32", "C/C++", "MQTT", "Blynk", "Wokwi"],

@@ -29,7 +29,7 @@ export default function Project() {
   ];
 
   return (
-    <SiteLayout>
+    <SiteLayout section="work">
       <article className="rise pt-10 md:pt-14">
         <a href="/#work" className="link inline-flex h-11 items-center gap-2 text-sm text-muted-foreground">
           <ArrowLeft className="size-4" aria-hidden="true" />

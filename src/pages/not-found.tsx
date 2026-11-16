@@ -1,4 +1,5 @@
-import { SiteLayout } from "../components/site-layout";
+import { buttonLook, SiteLayout } from "../components/site-layout";
+import { Button } from "../components/ui/button";
 
 export default function NotFound() {
   return (
@@ -9,12 +10,9 @@ export default function NotFound() {
         <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
           The link may be old, or the project may have moved.
         </p>
-        <a
-          href="/#work"
-          className="mt-8 inline-flex h-11 items-center bg-foreground px-5 text-sm font-medium text-background transition-opacity duration-150 hover:opacity-85"
-        >
-          Back to all work
-        </a>
+        <Button asChild className={`mt-8 ${buttonLook.solid}`}>
+          <a href="/#work">Back to all work</a>
+        </Button>
       </section>
     </SiteLayout>
   );

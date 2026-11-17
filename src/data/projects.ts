@@ -20,6 +20,8 @@ export interface Project {
   stack: string[];
   links: { label: string; href: string }[];
   image?: { src: string; alt: string; caption: string; width: number; height: number };
+  /** A 3D model shown on a turntable. `src` is an .obj with an .mtl of the same name beside it. */
+  model?: { src: string; label: string; caption: string };
   overview: string[];
   highlights: string[];
   log?: { date: string; text: string }[];
@@ -42,6 +44,11 @@ export const projects: Project[] = [
     context: "Team project, Telkom University",
     stack: ["ROS 2 Jazzy", "Nav2", "SLAM Toolbox", "STM32F407", "FreeRTOS", "RPLIDAR", "C", "Python"],
     links: [{ label: "Source", href: `${GH}/AMR` }],
+    model: {
+      src: "/models/amr.obj",
+      label: "3D model of the robot: an orange and black base with four wheels, a grey mast braced by two struts, and a Kinect sensor at the top",
+      caption: "The large chassis, from the simulation model. Drag to turn it.",
+    },
     image: {
       src: "/images/amr-map.webp",
       alt: "Black and white occupancy grid map showing two long corridors meeting at a corner, with rooms along one side.",

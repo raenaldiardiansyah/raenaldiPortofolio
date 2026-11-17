@@ -3,6 +3,7 @@ import { Link, useParams } from "wouter";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getProject } from "../data/projects";
 import { ExternalLink, SiteLayout, StatusTag } from "../components/site-layout";
+import ModelViewer from "../components/model-viewer";
 import NotFound from "./not-found";
 
 export default function Project() {
@@ -55,6 +56,15 @@ export default function Project() {
             </ul>
           )}
         </header>
+
+        {p.model && (
+          <figure className="pb-10 md:pb-14">
+            <div className="max-w-md">
+              <ModelViewer src={p.model.src} label={p.model.label} />
+            </div>
+            <figcaption className="mt-3 max-w-xl text-sm text-muted-foreground">{p.model.caption}</figcaption>
+          </figure>
+        )}
 
         {p.image && (
           <figure className="pb-10 md:pb-14">

@@ -6,6 +6,7 @@ import { categories, projects, type Project, type ProjectCategory } from "../dat
 import { buttonLook, EMAIL, ExternalLink, GITHUB, LINKEDIN, SiteLayout, StatusTag } from "../components/site-layout";
 import { Button } from "../components/ui/button";
 import BlurText from "../components/ui/BlurText";
+import ModelViewer from "../components/model-viewer";
 
 const skills: { group: string; items: string[] }[] = [
   { group: "Languages", items: ["TypeScript", "JavaScript", "C/C++", "Python", "Java"] },
@@ -193,19 +194,28 @@ export default function Home() {
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
             </div>
-            {current.image && (
+            {current.model ? (
               <figure>
-                <img
-                  src={current.image.src}
-                  alt={current.image.alt}
-                  width={current.image.width}
-                  height={current.image.height}
-                  className="w-full border bg-card"
-                />
+                <ModelViewer src={current.model.src} label={current.model.label} />
                 <figcaption className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  {current.image.caption}
+                  {current.model.caption}
                 </figcaption>
               </figure>
+            ) : (
+              current.image && (
+                <figure>
+                  <img
+                    src={current.image.src}
+                    alt={current.image.alt}
+                    width={current.image.width}
+                    height={current.image.height}
+                    className="w-full border bg-card"
+                  />
+                  <figcaption className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    {current.image.caption}
+                  </figcaption>
+                </figure>
+              )
             )}
           </div>
         </section>

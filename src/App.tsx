@@ -1,48 +1,27 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "./components/ui/toaster";
-import { TooltipProvider } from "./components/ui/tooltip";
-import NotFound from "./pages/not-found";
+import { Redirect, Route, Switch } from "wouter";
+import { MotionConfig } from "motion/react";
 import Home from "./pages/Home";
-import AGVLineFollower from "./pages/AGV-LineFollower";
-import SmartLockDoor from "./pages/Smart-Lock Door";
-import BojongTravel from "./pages/Bojong-Travel"
-import { useEffect } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Project from "./pages/Project";
+import NotFound from "./pages/not-found";
 
-
-gsap.registerPlugin(ScrollTrigger);
-
-function Router() {
+export default function App() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/AGV-LineFollower" component={AGVLineFollower} />
-      <Route path="/Smart-Lock Door" component={SmartLockDoor} />
-      <Route path="/Bojong-Travel" component={BojongTravel} />
-      <Route component={NotFound} />
-    </Switch>
+    <MotionConfig reducedMotion="user">
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/work/:slug" component={Project} />
+        {/* Addresses of the old project pages, kept so existing links still land somewhere. */}
+        <Route path="/AGV-LineFollower">
+          <Redirect to="/work/agv-line-follower" replace />
+        </Route>
+        <Route path="/Smart-Lock Door">
+          <Redirect to="/work/smart-lock" replace />
+        </Route>
+        <Route path="/Bojong-Travel">
+          <Redirect to="/work/bojong-travel" replace />
+        </Route>
+        <Route component={NotFound} />
+      </Switch>
+    </MotionConfig>
   );
 }
-
-function App() {
-  useEffect(() => {
-    ScrollTrigger.refresh();
-    return () => {
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-    };
-  }, []);
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-}
-
-export default App;

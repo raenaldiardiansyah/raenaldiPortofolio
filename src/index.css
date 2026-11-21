@@ -28,6 +28,7 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   --color-signal: hsl(var(--signal));
+  --color-moss: hsl(var(--moss));
 
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -124,6 +125,57 @@
   @apply underline decoration-border underline-offset-4 transition-colors duration-150 hover:text-signal hover:decoration-signal;
 }
 
+/* Desktop home: always dark, graded after Fuji Eterna film: low saturation, green-grey
+   shadows, bone highlights, one pale lichen signal. The 3D scenes use the same values
+   (src/components/three/scenes.ts). */
+.desk {
+  color-scheme: dark;
+  --background: 150 7% 5%;
+  --foreground: 45 18% 87%;
+  --card: 150 6% 8%;
+  --card-foreground: 45 18% 87%;
+  --popover: 150 6% 8%;
+  --popover-foreground: 45 18% 87%;
+  --primary: 45 18% 87%;
+  --primary-foreground: 150 7% 5%;
+  --secondary: 150 5% 11%;
+  --secondary-foreground: 45 18% 87%;
+  --muted: 150 5% 11%;
+  --muted-foreground: 90 5% 60%;
+  --accent: 150 5% 13%;
+  --accent-foreground: 45 18% 87%;
+  --border: 120 5% 16%;
+  --input: 120 5% 16%;
+  --ring: 68 40% 68%;
+  --signal: 68 40% 68%;
+  --moss: 158 14% 46%;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+body:has(.desk) {
+  background: hsl(150 7% 5%);
+}
+/* No visible scrollbar on the desktop home; the progress line at the top shows where you are. */
+html:has(.desk) {
+  scrollbar-width: none;
+}
+html:has(.desk)::-webkit-scrollbar {
+  display: none;
+}
+/* Film grain over the whole page, so the gradients do not band. */
+.desk::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.desk ::selection {
+  background: hsl(var(--signal));
+  color: hsl(var(--background));
+}
 @keyframes rise {
   from {
     opacity: 0;

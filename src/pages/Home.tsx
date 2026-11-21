@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Link } from "wouter";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Mail } from "lucide-react";
@@ -7,22 +7,23 @@ import { buttonLook, EMAIL, ExternalLink, GITHUB, LINKEDIN, SiteLayout, StatusTa
 import { Button } from "../components/ui/button";
 import BlurText from "../components/ui/BlurText";
 import ModelViewer from "../components/model-viewer";
+import { landHome } from "../lib/scroll";
 
-const skills: { group: string; items: string[] }[] = [
+export const skills: { group: string; items: string[] }[] = [
   { group: "Languages", items: ["TypeScript", "JavaScript", "C/C++", "Python", "Java"] },
-  { group: "Embedded & robotics", items: ["ESP32", "STM32", "Arduino", "ROS 2", "MQTT", "Sensors & actuators", "PCB design"] },
+  { group: "Embedded & robotics", items: ["ESP32", "STM32", "Arduino", "NVIDIA Jetson", "ROS 2", "MQTT", "Sensors & actuators", "PCB design"] },
   { group: "Web", items: ["React", "Next.js", "Tailwind CSS", "Vite", "Supabase", "PostgreSQL"] },
   { group: "Tools", items: ["Git", "KiCad", "Figma", "VS Code", "Arduino IDE"] },
 ];
 
-const experience = [
+export const experience = [
   { period: "Now", title: "Laboratory Assistant", org: "INACOS Laboratory, Telkom University" },
   { period: "2026 — now", title: "Internal Relations Department", org: "Computer Engineering Student Association, Telkom University" },
   { period: "2024 — now", title: "Computer Engineering", org: "Telkom University" },
 ];
 
 // Counted from the project list, so they stay true when it changes.
-const facts = [
+export const facts = [
   { value: projects.length, label: "Projects" },
   { value: projects.filter((p) => p.status === "Live").length, label: "Live on the web" },
   { value: projects.filter((p) => p.category === "Robotics & IoT").length, label: "Robotics & IoT builds" },
@@ -99,16 +100,14 @@ function Section({ id, label, children }: { id: string; label: string; children:
   );
 }
 
-export default function Home() {
+function MobileHome() {
   const [filter, setFilter] = useState<Filter>("All");
   const current = projects.find((p) => p.status === "In development");
   const shown = projects.filter((p) => filter === "All" || p.category === filter);
   const filters: Filter[] = ["All", ...categories];
 
-  // The page arrives with a hash (e.g. /#work from a project page) before React has rendered the target.
-  useEffect(() => {
-    if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
-  }, []);
+  // Runs after the first render, so the section a hash points at exists.
+  useEffect(landHome, []);
 
   return (
     <SiteLayout>
@@ -382,5 +381,25 @@ export default function Home() {
         <p className="mt-6 break-all font-mono text-sm text-muted-foreground">{EMAIL}</p>
       </Section>
     </SiteLayout>
+  );
+}
+
+// Tablets and up get the 3D desktop home; phones keep the page above. three.js loads only for the desktop one.
+const DesktopHome = lazy(() => import("./HomeDesktop"));
+const DESKTOP = "(min-width: 768px)";
+
+export default function Home() {
+  const [desktop, setDesktop] = useState(() => window.matchMedia(DESKTOP).matches);
+  useEffect(() => {
+    const query = window.matchMedia(DESKTOP);
+    const onChange = () => setDesktop(query.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+  if (!desktop) return <MobileHome />;
+  return (
+    <Suspense fallback={<div className="desk min-h-screen" />}>
+      <DesktopHome />
+    </Suspense>
   );
 }

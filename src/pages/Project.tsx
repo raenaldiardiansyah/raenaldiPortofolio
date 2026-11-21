@@ -60,7 +60,7 @@ export default function Project() {
         {p.model && (
           <figure className="pb-10 md:pb-14">
             <div className="max-w-md">
-              <ModelViewer src={p.model.src} label={p.model.label} />
+              <ModelViewer src={p.model.src} label={p.model.label} parts />
             </div>
             <figcaption className="mt-3 max-w-xl text-sm text-muted-foreground">{p.model.caption}</figcaption>
           </figure>

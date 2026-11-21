@@ -9,7 +9,7 @@ import BlurText from "../components/ui/BlurText";
 import ModelViewer from "../components/model-viewer";
 import { ThreeCanvas } from "../components/three/three-canvas";
 import { WorkMenu } from "../components/work-menu";
-import { lidarScene, signalWave } from "../components/three/scenes";
+import { lidarScene, robotHead } from "../components/three/scenes";
 import { SkillMap } from "../components/skill-map";
 import { landHome } from "../lib/scroll";
 import { experience, skills } from "./Home";
@@ -77,7 +77,7 @@ export default function HomeDesktop() {
         style={{ scaleX: progress }}
         className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-signal"
       />
-      <SiteLayout>
+      <SiteLayout reveal>
         {/* Hero: full-bleed LiDAR sweep behind the intro. */}
         <section className="relative left-1/2 flex min-h-[640px] w-screen -translate-x-1/2 items-end pb-20 lg:h-[calc(100svh-3.5rem)]">
           <ThreeCanvas
@@ -240,22 +240,20 @@ export default function HomeDesktop() {
           </div>
         </section>
 
-        {/* Contact over a moving signal field. */}
+        {/* Contact: the question on top, the robot head in the middle (it opens when you point at it), the ways to reach me below. */}
         <section
           id="contact"
           aria-labelledby="contact-title"
-          className="relative left-1/2 mt-16 w-screen -translate-x-1/2 overflow-hidden border-t"
+          className="relative left-1/2 mt-16 w-screen -translate-x-1/2 overflow-hidden rounded-b-[2rem] border-t"
         >
-          <div className="mx-auto max-w-6xl px-8 py-28">
-            <ThreeCanvas setup={signalWave} className="absolute inset-0 opacity-90" />
-            <div className="relative max-w-2xl">
-              <h2 id="contact-title" className="text-5xl font-medium leading-[1.05] tracking-tight">
-                Building something with a sensor on one end and a screen on the other?
-              </h2>
-              <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
-                Email is the fastest way to reach me.
-              </p>
-              <div className="mt-9 flex flex-wrap gap-3">
+          <div className="mx-auto flex max-w-6xl flex-col items-center px-8 pb-20 pt-24 text-center">
+            <h2 id="contact-title" className="max-w-3xl text-balance text-5xl font-medium leading-[1.05] tracking-tight">
+              Building something with a sensor on one end and a screen on the other?
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">Email is the fastest way to reach me.</p>
+            <ThreeCanvas setup={robotHead} className="mt-4 h-[340px] w-full max-w-xl lg:h-[380px]" />
+            <div>
+              <div className="flex flex-wrap justify-center gap-3">
                 <Magnetic>
                   <Button asChild className={`${buttonLook.solid} border-signal bg-signal text-background`}>
                     <a href={`mailto:${EMAIL}`}>

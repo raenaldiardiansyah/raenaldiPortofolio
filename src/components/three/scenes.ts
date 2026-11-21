@@ -277,60 +277,284 @@ export const lidarScene: SceneSetup = ({ scene, camera, renderer, pointer, reduc
 };
 
 /* ------------------------------------------------------------------ */
-/* Contact: a field of points moving like a carrier wave; the cursor drops a ripple in it. */
+/* Contact: a humanoid robot, head and shoulders, drawn in points: camera eyes whose pupils follow the cursor,
+   a sensor bar, PCB traces on the cheeks, gears at the ears, cables down the neck, and a chassis with a board on
+   the chest. Pointing at it opens it a little (plates lift off a lit core, the gears speed up); moving away puts
+   it back together. Built here, no model to load, about 9k points. */
 
-export const signalWave: SceneSetup = ({ scene, camera, renderer, pointer }) => {
-  camera.position.set(0, 3.2, 12);
-  camera.lookAt(0, -0.5, 0);
-  const geometry = new THREE.PlaneGeometry(44, 18, 220, 90);
-  geometry.rotateX(-Math.PI / 2);
-  const uniforms = {
-    uTime: { value: 0 },
-    uPointer: { value: new THREE.Vector2() },
-    uPixel: { value: renderer.getPixelRatio() },
-    uMoss: { value: MOSS },
-    uSignal: { value: SIGNAL },
+export const robotHead: SceneSetup = ({ scene, camera, renderer, pointer, reduceMotion }) => {
+  camera.position.set(0, 0, 12);
+  camera.lookAt(0, 0, 0);
+
+  type V3 = [number, number, number];
+  const shell = ICE.clone().multiplyScalar(0.62);
+  const dim = ICE.clone().multiplyScalar(0.42);
+  const trace = SIGNAL.clone().multiplyScalar(0.75);
+  const r = (a: number) => (Math.random() * 2 - 1) * a;
+  const PLATE = 0;
+  const CORE = 1; // hidden when shut, lit when open
+  const PUPIL = 2; // follows the cursor
+
+  const uniforms = { uOpen: { value: 0 }, uPixel: { value: renderer.getPixelRatio() }, uLook: { value: new THREE.Vector2() } };
+  const material = new THREE.ShaderMaterial({
+    uniforms,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexShader: /* glsl */ `
+      attribute vec3 aOffset; attribute vec3 aColor; attribute float aRand; attribute float aKind;
+      uniform float uOpen; uniform float uPixel; uniform vec2 uLook;
+      varying vec3 vColor; varying float vAlpha;
+      void main() {
+        float core = step(0.5, aKind) * step(aKind, 1.5);
+        float pupil = step(1.5, aKind);
+        // Each point leaves a little after the last. Plates only lift off part of their offset and points stray
+        // just a little, so the robot stays readable while open.
+        float o = smoothstep(aRand * 0.35, aRand * 0.35 + 0.65, uOpen);
+        vec3 drift = (vec3(fract(aRand * 13.7), fract(aRand * 29.3), fract(aRand * 47.1)) - 0.5) * 0.05;
+        vec3 p = position + vec3(uLook * pupil, 0.0) + (aOffset * 0.55 + drift) * o;
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_PointSize = (1.8 + core * 1.5 * uOpen + pupil * 0.8) * uPixel * (12.0 / -mv.z);
+        gl_Position = projectionMatrix * mv;
+        vColor = aColor;
+        vAlpha = mix(0.9, 0.1 + 0.9 * uOpen, core);
+      }`,
+    fragmentShader: /* glsl */ `
+      varying vec3 vColor; varying float vAlpha;
+      void main() {
+        float m = smoothstep(0.5, 0.05, length(gl_PointCoord - 0.5));
+        gl_FragColor = vec4(vColor, m * vAlpha);
+      }`,
+  });
+
+  // A point buffer for one moving part: the robot itself, and each gear (they turn on their own axis).
+  const part = () => {
+    const pos: number[] = [];
+    const off: number[] = [];
+    const col: number[] = [];
+    const rnd: number[] = [];
+    const kind: number[] = [];
+    const add = ([x, y, z]: V3, o: V3, c: THREE.Color, k = PLATE) => {
+      pos.push(x, y, z);
+      off.push(...o);
+      col.push(c.r, c.g, c.b);
+      rnd.push(Math.random());
+      kind.push(k);
+    };
+    const line = (a: V3, b: V3, n: number, o: V3, c: THREE.Color) => {
+      for (let i = 0; i <= n; i++) add([a[0] + (b[0] - a[0]) * (i / n), a[1] + (b[1] - a[1]) * (i / n), a[2] + (b[2] - a[2]) * (i / n)], o, c);
+    };
+    const ring = (n: number, at: (a: number) => V3, o: V3, c: THREE.Color, k = PLATE) => {
+      for (let i = 0; i < n; i++) add(at((i / n) * Math.PI * 2), o, c, k);
+    };
+    const points = () => {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute("aOffset", new THREE.Float32BufferAttribute(off, 3));
+      g.setAttribute("aColor", new THREE.Float32BufferAttribute(col, 3));
+      g.setAttribute("aRand", new THREE.Float32BufferAttribute(rnd, 1));
+      g.setAttribute("aKind", new THREE.Float32BufferAttribute(kind, 1));
+      return new THREE.Points(g, material);
+    };
+    return { add, line, ring, points };
   };
-  scene.add(
-    new THREE.Points(
-      geometry,
-      new THREE.ShaderMaterial({
-        uniforms,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        vertexShader: /* glsl */ `
-          uniform float uTime; uniform vec2 uPointer; uniform float uPixel;
-          varying float vH; varying float vX; varying float vFade;
-          void main() {
-            vec3 p = position;
-            float h = sin(p.x * 0.32 + uTime * 0.9) * 0.55 + sin(p.z * 0.55 - uTime * 0.6) * 0.35
-                    + sin((p.x + p.z) * 0.9 + uTime * 1.6) * 0.08;
-            float d = distance(p.xz, uPointer);
-            h += exp(-d * d * 0.08) * sin(d * 2.2 - uTime * 4.0) * 0.7;
-            p.y = h;
-            vH = h; vX = p.x;
-            vFade = smoothstep(9.0, 2.0, abs(p.z)) * smoothstep(22.0, 14.0, abs(p.x));
-            vec4 mv = modelViewMatrix * vec4(p, 1.0);
-            gl_PointSize = (1.0 + max(h, 0.0) * 1.6) * uPixel * (12.0 / -mv.z);
-            gl_Position = projectionMatrix * mv;
-          }`,
-        fragmentShader: /* glsl */ `
-          uniform vec3 uMoss; uniform vec3 uSignal;
-          varying float vH; varying float vX; varying float vFade;
-          void main() {
-            float m = smoothstep(0.5, 0.05, length(gl_PointCoord - 0.5));
-            vec3 col = mix(uMoss, uSignal, smoothstep(-12.0, 14.0, vX + vH * 4.0));
-            gl_FragColor = vec4(col, m * vFade * (0.25 + clamp(vH, 0.0, 1.0) * 0.75));
-          }`,
-      }),
-    ),
-  );
+  const body = part();
+  const { add, line, ring } = body;
 
+  // The skull: an egg that narrows towards the jaw. Half sizes in scene units.
+  const [RX, RY, RZ] = [0.98, 1.22, 1.08];
+  const taper = (y: number) => (y < 0 ? 1 - 0.28 * (-y / RY) : 1);
+  const surface = (nx: number, ny: number, nz: number): V3 => [nx * RX * taper(ny * RY), ny * RY, nz * RZ * taper(ny * RY * 0.6)];
+  const CAP: V3 = [0, 0.85, 0];
+  const FACE: V3 = [0, 0, 0.6];
+  const BACK: V3 = [0, 0, -0.5];
+  const SIDE = (s: number): V3 => [s * 0.6, 0, 0];
+  for (let i = 0; i < 4000; i++) {
+    const n = new THREE.Vector3(r(1), r(1), r(1)).normalize();
+    // Each point rides with the plate it sits on: cap on top, face in front, back, or one side.
+    const o: V3 = n.y > 0.45 ? CAP : n.z > 0.35 ? FACE : n.z < -0.3 ? BACK : SIDE(Math.sign(n.x));
+    add(surface(n.x, n.y, n.z), o, shell);
+  }
+  // Seams between the plates, a little brighter, so the head reads as built from parts.
+  for (let i = 0; i < 220; i++) {
+    const a = (i / 220) * Math.PI * 2;
+    const n = new THREE.Vector3(Math.cos(a) * 0.89, 0.45, Math.sin(a) * 0.89);
+    add(surface(n.x, n.y, n.z), CAP, ICE.clone().multiplyScalar(0.8));
+  }
+
+  // The face, on the front plate. `front` puts a point just proud of the skin at (x, y).
+  const front = (x: number, y: number, lift = 0.03): V3 => {
+    const k = 1 - (x / (RX * taper(y))) ** 2 - (y / RY) ** 2;
+    return [x, y, Math.sqrt(Math.max(k, 0.02)) * RZ * taper(y * 0.6) + lift];
+  };
+  // Sensor bar across the forehead: a rail with five lit pads.
+  for (let i = 0; i <= 50; i++) add(front(-0.5 + i * 0.02, 0.52), FACE, dim);
+  for (let k = 0; k < 5; k++) ring(10, (a) => front(-0.36 + k * 0.18 + Math.cos(a) * 0.03, 0.52 + Math.sin(a) * 0.02, 0.04), FACE, SIGNAL);
+  // Camera eyes: housing, lens, and an iris that moves inside the lens to follow the cursor.
+  const EYE_Y = 0.12;
+  for (const x of [-0.36, 0.36]) {
+    ring(80, (a) => front(x + Math.cos(a) * 0.21, EYE_Y + Math.sin(a) * 0.19), [0, 0, 0.7], ICE);
+    ring(56, (a) => front(x + Math.cos(a) * 0.14, EYE_Y + Math.sin(a) * 0.13, 0.05), [0, 0, 0.7], MOSS);
+    ring(36, (a) => front(x + Math.cos(a) * 0.06, EYE_Y + Math.sin(a) * 0.06, 0.08), [0, 0, 0.75], SIGNAL, PUPIL);
+    for (let i = 0; i < 24; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = Math.sqrt(Math.random()) * 0.035;
+      add(front(x + Math.cos(a) * d, EYE_Y + Math.sin(a) * d, 0.09), [0, 0, 0.75], SIGNAL, PUPIL);
+    }
+  }
+  // Nose ridge, a speaker grille for a mouth, and the jaw line.
+  for (let i = 0; i <= 18; i++) add(front(0, -0.08 - i * 0.02, 0.03 + Math.sin((i / 18) * Math.PI) * 0.06), FACE, ICE);
+  for (let k = 0; k < 4; k++) for (let i = 0; i <= 22; i++) add(front(-0.24 + i * 0.022, -0.56 - k * 0.07), FACE, k % 2 ? dim : ICE);
+  for (let i = 0; i <= 30; i++) add(front(-0.45 + i * 0.03, -1.02 + Math.abs(-0.45 + i * 0.03) * 0.25), FACE, MOSS);
+
+  // PCB traces on each side plate: right-angle runs ending in vias. Given as (z, y) on the skull's side.
+  const sideAt = (s: number, z: number, y: number): V3 => {
+    const k = 1 - (y / RY) ** 2 - (z / (RZ * taper(y * 0.6))) ** 2;
+    return [s * RX * taper(y) * Math.sqrt(Math.max(k, 0.04)) + s * 0.02, y, z];
+  };
+  const runs: [number, number][][] = [
+    [[0.42, 0.45], [0.05, 0.45], [-0.15, 0.35], [-0.5, 0.35]],
+    [[0.45, 0.2], [0.45, -0.25], [0.2, -0.45], [-0.2, -0.45]],
+    [[-0.5, 0.15], [-0.5, -0.3], [-0.65, -0.42]],
+    [[0.3, -0.6], [-0.35, -0.6]],
+  ];
+  for (const s of [-1, 1]) {
+    for (const run of runs) {
+      for (let j = 1; j < run.length; j++) {
+        const [z0, y0] = run[j - 1];
+        const [z1, y1] = run[j];
+        const n = Math.ceil(Math.hypot(z1 - z0, y1 - y0) / 0.015);
+        for (let i = 0; i <= n; i++) add(sideAt(s, z0 + ((z1 - z0) * i) / n, y0 + ((y1 - y0) * i) / n), SIDE(s), trace);
+      }
+      for (const [z, y] of [run[0], run[run.length - 1]]) ring(12, (a) => sideAt(s, z + Math.cos(a) * 0.035, y + Math.sin(a) * 0.035), SIDE(s), SIGNAL);
+    }
+    // Ear housing the gears sit in.
+    ring(64, (a) => [s * (RX + 0.03), 0.02 + Math.cos(a) * 0.38, -0.05 + Math.sin(a) * 0.38], [s * 0.8, 0, 0], MOSS);
+  }
+
+  // Neck: segmented rings, a piston each side, and a cable bundle from the back of the head to the chassis.
+  for (let k = 0; k < 6; k++) {
+    const y = -1.15 - k * 0.15;
+    const rr = 0.36 + (k % 2) * 0.05;
+    ring(48, (a) => [Math.cos(a) * rr, y, -0.1 + Math.sin(a) * rr], [0, -0.3, 0], k % 2 ? MOSS : dim);
+  }
+  for (const s of [-1, 1]) {
+    line([s * 0.32, -1.05, 0.12], [s * 0.5, -2.15, 0.15], 50, [0, -0.3, 0], ICE);
+    line([s * 0.36, -1.05, 0.12], [s * 0.54, -2.15, 0.15], 50, [0, -0.3, 0], dim);
+  }
+  const cables: [V3[], THREE.Color][] = [
+    [[[-0.35, -0.7, -0.75], [-0.55, -1.4, -0.7], [-0.75, -2.2, -0.35]], MOSS],
+    [[[0, -0.8, -0.85], [0.05, -1.5, -0.7], [0.25, -2.2, -0.35]], SIGNAL],
+    [[[0.35, -0.7, -0.75], [0.6, -1.4, -0.7], [0.75, -2.2, -0.35]], MOSS],
+    [[[-1.05, -0.3, -0.05], [-1.25, -1.2, 0], [-1.35, -2.2, 0]], dim],
+    [[[1.05, -0.3, -0.05], [1.25, -1.2, 0], [1.35, -2.2, 0]], dim],
+  ];
+  for (const [path, c] of cables) {
+    const curve = new THREE.CatmullRomCurve3(path.map((v) => new THREE.Vector3(...v)));
+    for (const v of curve.getPoints(110)) add([v.x + r(0.015), v.y, v.z + r(0.015)], [0, -0.2, -0.3], c);
+  }
+
+  // Chassis: a shoulder frame drawn by its edges, shoulder joints, a board on the chest with chips and traces, vents.
+  const CH: V3 = [0, -0.35, 0];
+  const [T, B, TW, BW, D] = [-2.25, -3.5, 1.35, 1.0, 0.5];
+  const box: V3[] = [
+    [-TW, T, D], [TW, T, D], [BW, B, D], [-BW, B, D],
+    [-TW, T, -D], [TW, T, -D], [BW, B, -D], [-BW, B, -D],
+  ];
+  const edges = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+  for (const [a, b] of edges) line(box[a], box[b], 60, CH, a < 4 && b < 4 ? ICE : dim);
+  for (let i = 0; i < 900; i++) {
+    const v = Math.random();
+    const w = TW + (BW - TW) * v;
+    add([r(w), T + (B - T) * v, D * (Math.random() < 0.5 ? 1 : -1)], CH, ICE.clone().multiplyScalar(0.3));
+  }
+  for (const s of [-1, 1]) {
+    ring(48, (a) => [s * (TW + 0.12), T - 0.15 + Math.cos(a) * 0.28, Math.sin(a) * 0.28], [s * 0.4, -0.35, 0], MOSS);
+    ring(24, (a) => [s * (TW + 0.16), T - 0.15 + Math.cos(a) * 0.12, Math.sin(a) * 0.12], [s * 0.4, -0.35, 0], SIGNAL);
+  }
+  const PCB: V3 = [0, -0.35, 0.35];
+  const z = D + 0.03;
+  const rect = (x0: number, y0: number, x1: number, y1: number, c: THREE.Color) => {
+    const nx = Math.ceil((x1 - x0) / 0.02);
+    const ny = Math.ceil((y0 - y1) / 0.02);
+    line([x0, y0, z], [x1, y0, z], nx, PCB, c);
+    line([x1, y0, z], [x1, y1, z], ny, PCB, c);
+    line([x1, y1, z], [x0, y1, z], nx, PCB, c);
+    line([x0, y1, z], [x0, y0, z], ny, PCB, c);
+  };
+  rect(-0.72, -2.45, 0.72, -3.15, MOSS);
+  rect(-0.5, -2.6, -0.1, -2.95, ICE);
+  rect(0.15, -2.6, 0.45, -2.8, ICE);
+  for (let k = 0; k < 5; k++) line([-0.1, -2.65 - k * 0.07, z], [0.15, -2.65 - k * 0.07, z], 12, PCB, trace);
+  for (let k = 0; k < 4; k++) line([-0.45 + k * 0.1, -2.95, z], [-0.45 + k * 0.1, -3.1, z], 8, PCB, trace);
+  line([0.3, -2.8, z], [0.3, -3.05, z], 12, PCB, trace);
+  line([0.3, -3.05, z], [0.6, -3.05, z], 15, PCB, trace);
+  for (const [x, y] of [[0.6, -3.05], [-0.65, -2.52], [0.65, -2.52]]) ring(12, (a) => [x + Math.cos(a) * 0.035, y + Math.sin(a) * 0.035, z], PCB, SIGNAL);
+  for (let k = 0; k < 4; k++) line([-0.5, -3.27 - k * 0.055, D], [0.5, -3.27 - k * 0.055, D], 50, CH, dim);
+
+  // The core: hidden by the plates when shut, lit when they open.
+  for (let i = 0; i < 380; i++) {
+    const v = new THREE.Vector3(r(1), r(1), r(1)).normalize().multiplyScalar(0.5 * Math.cbrt(Math.random()));
+    add([v.x * 1.1, v.y + 0.25, v.z], [0, 0, 0], SIGNAL, CORE);
+  }
+
+  // Gears in each ear: a big one and a small one meshing below it, turning on the ear's axis.
+  const gear = (R: number, teeth: number) => {
+    const g = part();
+    for (let i = 0; i < 220; i++) {
+      const a = (i / 220) * Math.PI * 2;
+      const tooth = ((a / (Math.PI * 2)) * teeth) % 1 < 0.5;
+      const rr = R + (tooth ? 0.05 : 0);
+      g.add([0, Math.cos(a) * rr, Math.sin(a) * rr], [0, 0, 0], MOSS);
+    }
+    g.ring(28, (a) => [0, Math.cos(a) * R * 0.3, Math.sin(a) * R * 0.3], [0, 0, 0], SIGNAL);
+    for (let k = 0; k < 4; k++) {
+      const a = (k / 4) * Math.PI * 2;
+      g.line([0, Math.cos(a) * R * 0.3, Math.sin(a) * R * 0.3], [0, Math.cos(a) * R * 0.95, Math.sin(a) * R * 0.95], 14, [0, 0, 0], dim);
+    }
+    return g.points();
+  };
+  const robot = new THREE.Group();
+  robot.add(body.points());
+  const gears: { mesh: THREE.Points; speed: number }[] = [];
+  for (const s of [-1, 1]) {
+    const big = gear(0.26, 12);
+    big.position.set(s * (RX + 0.07), 0.08, -0.02);
+    const small = gear(0.13, 7);
+    small.position.set(s * (RX + 0.05), -0.32, -0.3);
+    robot.add(big, small);
+    gears.push({ mesh: big, speed: 0.6 * s }, { mesh: small, speed: -1.1 * s });
+  }
+  scene.add(robot);
+
+  const halfH = 12 * Math.tan(THREE.MathUtils.degToRad(20));
+  const SIZE = 1.6;
+  const look = new THREE.Vector2();
+  let open = 0;
+  let spin = 0;
   return {
-    update(t) {
-      uniforms.uTime.value = t;
-      uniforms.uPointer.value.set(pointer.x * 16, -pointer.y * 6);
+    update(t, dt) {
+      // Centred in its own canvas between the title and the buttons. The robot runs from the top of the skull
+      // (y 1.3) to the bottom of the chassis (y -3.5), so it is raised by half of that to sit in the middle.
+      const halfW = halfH * camera.aspect;
+      robot.scale.setScalar(SIZE);
+      robot.position.set(0, 1.1 * SIZE + Math.sin(t * 0.8) * 0.06, 0);
+      // Where the cursor is, relative to the head (the robot's origin).
+      const dx = pointer.x * halfW - robot.position.x;
+      const dy = pointer.y * halfH - robot.position.y;
+      // Open while the cursor is over the robot (a tap on touch screens), shut again when it leaves.
+      const over = Math.abs(dx) < 1.5 * SIZE && dy < 1.5 * SIZE && dy > -3.6 * SIZE;
+      const ease = (rate: number) => (reduceMotion ? 1 : 1 - Math.exp(-dt * rate));
+      open += (Number(over) - open) * ease(5);
+      uniforms.uOpen.value = open;
+      // The pupils move inside the lens towards the cursor; the head turns a little too.
+      look.set(THREE.MathUtils.clamp(dx / (2.5 * SIZE), -1, 1) * 0.07, THREE.MathUtils.clamp(dy / (2.5 * SIZE), -1, 1) * 0.06);
+      uniforms.uLook.value.lerp(look, ease(8));
+      robot.rotation.y += (THREE.MathUtils.clamp(dx * 0.04, -0.18, 0.18) - robot.rotation.y) * ease(3);
+      robot.rotation.x += (0.06 - THREE.MathUtils.clamp(pointer.y, -1, 1) * 0.08 - robot.rotation.x) * ease(3);
+      // Gears idle slowly and speed up while open; they stand still under reduced motion.
+      if (!reduceMotion) spin += dt * (0.6 + open * 2.4);
+      for (const g of gears) g.mesh.rotation.x = spin * g.speed;
     },
   };
 };

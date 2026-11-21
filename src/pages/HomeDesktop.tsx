@@ -54,10 +54,11 @@ function Magnetic({ children }: { children: ReactNode }) {
   );
 }
 
-function Heading({ title }: { title: ReactNode }) {
+function Heading({ title, aside }: { title: ReactNode; aside?: ReactNode }) {
   return (
-    <Reveal className="mb-10 border-b pb-6">
+    <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b pb-6">
       <h2 className="max-w-2xl text-4xl font-medium leading-[1.05] tracking-tight lg:text-5xl">{title}</h2>
+      {aside}
     </Reveal>
   );
 }
@@ -200,8 +201,7 @@ export default function HomeDesktop() {
 
         {/* Work: pick a category, pick a project, then page through its details. */}
         <section id="work" aria-labelledby="work-title" className="py-16">
-          <Heading title={<span id="work-title">Selected work</span>} />
-          <WorkMenu />
+          <WorkMenu header={(filters) => <Heading title={<span id="work-title">Selected work</span>} aside={filters} />} />
         </section>
 
         {/* About: text and timeline beside a skill map you can walk into. */}
@@ -244,7 +244,7 @@ export default function HomeDesktop() {
         <section
           id="contact"
           aria-labelledby="contact-title"
-          className="relative left-1/2 mt-16 w-screen -translate-x-1/2 overflow-hidden rounded-b-[2rem] border-t"
+          className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden rounded-b-[2rem] border-t"
         >
           <div className="mx-auto flex max-w-6xl flex-col items-center px-8 pb-20 pt-24 text-center">
             <h2 id="contact-title" className="max-w-3xl text-balance text-5xl font-medium leading-[1.05] tracking-tight">

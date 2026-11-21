@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Link } from "wouter";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
@@ -32,7 +32,7 @@ const span = Math.max(now, ...items.map((i) => i.end)) + 2;
  * Selected work: every project on one 3D timeline (when, how long, which kind), then the picked one
  * in full below it. The named buttons under the timeline do the same as clicking a bar.
  */
-export function WorkMenu() {
+export function WorkMenu({ header }: { header: (filters: ReactNode) => ReactNode }) {
   const [filter, setFilter] = useState<Filter>("All");
   const [slug, setSlug] = useState(projects[0].slug);
   const [tab, setTab] = useState<Tab>("Overview");
@@ -50,6 +50,10 @@ export function WorkMenu() {
     timeline.current.onPick = (s) => {
       setFilter((f) => (f === "All" || projects.find((p) => p.slug === s)?.category === f ? f : "All"));
       setSlug(s);
+      // The picked project opens below the timeline; take the reader there.
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const detail = document.getElementById("work-detail");
+      if (detail) window.scrollTo({ top: detail.getBoundingClientRect().top + window.scrollY - 80, behavior: still ? "auto" : "smooth" });
     };
     timeline.current.select(selected.slug);
     timeline.current.filter(filter === "All" ? null : categories.indexOf(filter));
@@ -65,40 +69,42 @@ export function WorkMenu() {
     document.getElementById(`work-item-${next.slug}`)?.focus();
   };
 
+  const filterButtons = (
+    <div role="group" aria-label="Filter projects" className="inline-flex flex-wrap gap-1">
+      {filters.map((f) => {
+        const count = f === "All" ? projects.length : projects.filter((p) => p.category === f).length;
+        const pressed = filter === f;
+        return (
+          <button
+            key={f}
+            type="button"
+            aria-pressed={pressed}
+            onClick={() => setFilter(f)}
+            className={`relative inline-flex h-11 cursor-pointer items-center gap-2 px-4 text-sm transition-colors duration-150 ${
+              pressed ? "text-background" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {pressed && (
+              <motion.span
+                layoutId="work-filter"
+                aria-hidden="true"
+                className="absolute inset-0 bg-foreground"
+                transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+              />
+            )}
+            <span className="relative">{f}</span>
+            <span className="relative font-mono text-xs opacity-70">{count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div role="group" aria-label="Filter projects" className="inline-flex flex-wrap gap-1">
-          {filters.map((f) => {
-            const count = f === "All" ? projects.length : projects.filter((p) => p.category === f).length;
-            const pressed = filter === f;
-            return (
-              <button
-                key={f}
-                type="button"
-                aria-pressed={pressed}
-                onClick={() => setFilter(f)}
-                className={`relative inline-flex h-11 cursor-pointer items-center gap-2 px-4 text-sm transition-colors duration-150 ${
-                  pressed ? "text-background" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {pressed && (
-                  <motion.span
-                    layoutId="work-filter"
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-foreground"
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-                  />
-                )}
-                <span className="relative">{f}</span>
-                <span className="relative font-mono text-xs opacity-70">{count}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {header(filterButtons)}
 
-      <ThreeCanvas setup={setup} apiRef={timeline} className="mt-4 h-[320px] border-y lg:h-[380px]" />
+      <ThreeCanvas setup={setup} apiRef={timeline} className="h-[320px] border-b lg:h-[380px]" />
 
       <ol onKeyDown={onKey} aria-label="Projects" className="mt-3 flex flex-wrap gap-2">
         {shown.map((p) => {

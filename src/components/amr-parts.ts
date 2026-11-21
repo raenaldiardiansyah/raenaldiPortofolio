@@ -73,6 +73,27 @@ const pcb = (THREE: Three) => {
   return g;
 };
 
+// Jetson Orin Nano Developer Kit (100 × 79 mm carrier, module under a finned heatsink and fan), on its own
+// plate beside the controller PCB in the front bay.
+const JZ = -0.115;
+const jetson = (THREE: Three) => {
+  const g = new THREE.Group();
+  g.add(box(THREE, [0.11, 0.008, 0.09], [0.42, 0.16, JZ], 0x2b2e33, 0.2, 0.7)); // plate
+  g.add(box(THREE, [0.1, 0.0016, 0.079], [0.42, 0.172, JZ], 0x16191b, 0, 0.5)); // carrier board
+  g.add(box(THREE, [0.07, 0.006, 0.045], [0.425, 0.176, JZ - 0.008], 0x2a5a3a, 0, 0.5)); // module
+  for (let i = 0; i < 7; i++) g.add(box(THREE, [0.064, 0.016, 0.003], [0.425, 0.187, JZ - 0.026 + i * 0.006], 0x0d0d0e, 0.6, 0.4)); // fins
+  const fan = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.017, 0.017, 0.006, 32),
+    new THREE.MeshStandardMaterial({ color: 0x1b1c1e, metalness: 0.3, roughness: 0.5 }),
+  );
+  fan.position.set(0.425, 0.198, JZ - 0.008);
+  g.add(fan);
+  g.add(box(THREE, [0.016, 0.014, 0.015], [0.372, 0.18, JZ + 0.02], 0xb8bcc2, 0.8, 0.3)); // USB
+  g.add(box(THREE, [0.016, 0.014, 0.015], [0.372, 0.18, JZ], 0xb8bcc2, 0.8, 0.3));
+  g.add(box(THREE, [0.018, 0.013, 0.016], [0.372, 0.18, JZ - 0.022], 0xb8bcc2, 0.8, 0.3)); // Ethernet
+  return g;
+};
+
 export const AMR_PARTS: AmrPart[] = [
   { label: "Chassis", materials: ["$Material_1", "$Material_2"], offset: [0, 0, 0] },
   { label: "Battery bay lid", detail: "lifts off", materials: ["$Material_3"], offset: [0, 0.62, 0] },
@@ -81,6 +102,7 @@ export const AMR_PARTS: AmrPart[] = [
   { label: "12 V battery", detail: "controller supply", build: battery(0.07), offset: [0, 0.48, 0.12] },
   { label: "Controller PCB", detail: "STM32F407", build: pcb, offset: [0.32, 0.3, 0] },
   { label: "PCB mount", detail: "front bay", build: pcbMount, offset: [0.32, 0.12, 0] },
+  { label: "Jetson Orin Nano", detail: "Developer Kit", build: jetson, offset: [0.32, 0.42, -0.1] },
   { label: "Drive wheel ×2", materials: ["$Material_13"], offset: [0, 0, 0.4] },
   { materials: ["$Material_12"], offset: [0, 0, -0.4] },
   { label: "Gearbox ×2", build: gearbox(1), offset: [0, 0, 0.28] },

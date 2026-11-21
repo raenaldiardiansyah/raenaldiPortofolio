@@ -109,7 +109,7 @@ export function SkillMap({ groups }: { groups: Group[] }) {
         )}
       </nav>
 
-      <div ref={panel} aria-live="polite" className="mt-4 min-h-[19rem]">
+      <div ref={panel} aria-live="polite" className="mt-4 min-h-[16rem]">
         {project ? (
           <div>
             <p className="text-sm leading-relaxed text-muted-foreground">{project.summary}</p>

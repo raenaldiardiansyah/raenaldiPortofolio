@@ -42,7 +42,7 @@ export const projects: Project[] = [
     start: "2026-09",
     role: "Firmware and ROS 2 integration",
     context: "Team project, Telkom University",
-    stack: ["ROS 2 Jazzy", "Nav2", "SLAM Toolbox", "STM32F407", "FreeRTOS", "RPLIDAR", "C", "Python"],
+    stack: ["ROS 2 Jazzy", "Nav2", "SLAM Toolbox", "Jetson Orin Nano", "STM32F407", "FreeRTOS", "RPLIDAR", "C", "Python"],
     links: [{ label: "Source", href: `${GH}/AMR` }],
     model: {
       src: "/models/amr.obj",
@@ -57,7 +57,7 @@ export const projects: Project[] = [
       height: 775,
     },
     overview: [
-      "The robot builds an occupancy map of its surroundings with a 2D LiDAR, localises by fusing wheel encoders, an IMU and laser odometry through an EKF, and navigates to goals with Nav2. An STM32F407 runs the motor control loop and talks to the ROS 2 computer over UART. A web control panel lets an operator send the robot to a rack from any device on the network.",
+      "The robot builds an occupancy map of its surroundings with a 2D LiDAR, localises by fusing wheel encoders, an IMU and laser odometry through an EKF, and navigates to goals with Nav2. An STM32F407 runs the motor control loop and talks over UART to the robot's brain, a Jetson Orin Nano Developer Kit that runs ROS 2. A web control panel lets an operator send the robot to a rack from any device on the network.",
       "The navigation stack was first built by the team on a small prototype. My part is moving it onto a larger robot: new wheels and gearing, higher-current motor drivers, and the firmware and bridge changes the new hardware needs.",
     ],
     highlights: [

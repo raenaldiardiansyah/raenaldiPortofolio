@@ -15,7 +15,7 @@ export default function Project() {
     window.scrollTo({ top: 0, behavior: "instant" });
     if (found) document.title = `${found.project.title} — Raenaldi Ardiansyah`;
     return () => {
-      document.title = "Raenaldi Ardiansyah — Robotics, IoT & Web";
+      document.title = "Raenaldi Ardiansyah — Web, Robots & Electronics";
     };
   }, [slug]);
 

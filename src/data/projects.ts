@@ -42,7 +42,7 @@ export const projects: Project[] = [
     start: "2026-09",
     role: "Firmware and ROS 2 integration",
     context: "Team project, Telkom University",
-    stack: ["ROS 2 Jazzy", "Nav2", "SLAM Toolbox", "Jetson Orin Nano", "STM32F407", "FreeRTOS", "RPLIDAR", "C", "Python"],
+    stack: ["ROS 2 Jazzy", "Nav2", "SLAM Toolbox", "Jetson Orin Nano", "STM32F407", "FreeRTOS", "RPLIDAR", "KiCad", "C", "Python"],
     links: [{ label: "Source", href: `${GH}/AMR` }],
     model: {
       src: "/models/amr.obj",

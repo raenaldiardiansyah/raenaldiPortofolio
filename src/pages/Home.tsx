@@ -116,7 +116,7 @@ function MobileHome() {
         <p className="label rise">Raenaldi Ardiansyah Sidik — Bandung, Indonesia</p>
         <BlurText
           as="h1"
-          text={"I build robots, IoT devices and the dashboards that\u00A0run\u00A0them."}
+          text={"I build websites, robots and the circuit boards inside\u00A0them."}
           trigger="load"
           delay={45}
           blur={8}
@@ -126,8 +126,8 @@ function MobileHome() {
         />
         <div className="rise [animation-delay:350ms]">
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Computer engineering student at Telkom University. I work where firmware meets the web: motor control and
-            sensors on one side, the interface people actually look at on the other.
+            Computer engineering student at Telkom University. Besides software, I understand the electrical side: web
+            apps and firmware on one hand, wiring, power and PCB design on the other.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
             <Button asChild className={buttonLook.solid}>
@@ -324,12 +324,13 @@ function MobileHome() {
       <Section id="about" label="About">
         <div className="max-w-2xl space-y-4 text-lg leading-relaxed">
           <p>
-            I treat a system as one thing, from the sensor on the board to the screen an operator reads. Most of my
-            projects have both halves: a device that measures or moves, and a web interface that makes its state clear.
+            I work on both sides of the wire. I write web apps and firmware, and I also handle the electrical side: the
+            wiring, the power, and the PCB it all sits on. Some projects are pure web, some are robots, and the ones I
+            enjoy most need both.
           </p>
           <p className="text-muted-foreground">
-            Lately that has meant ROS 2 navigation and STM32 firmware for a mobile robot, and competition projects in
-            Next.js where the hard part was showing complicated data plainly.
+            Lately that has meant ROS 2 on a Jetson Orin Nano and STM32 firmware for a mobile robot, KiCad boards for
+            that robot and a line-following AGV, and competition projects in Next.js.
           </p>
         </div>
 

@@ -99,7 +99,7 @@ export default function HomeDesktop() {
             </p>
             <BlurText
               as="h1"
-              text={"Robots, IoT, and the dashboards behind them."}
+              text={"Websites, robots, and the circuit boards inside them."}
               trigger="load"
               delay={45}
               blur={10}
@@ -109,7 +109,7 @@ export default function HomeDesktop() {
             />
             <div className="rise [animation-delay:400ms]">
               <p className="mt-6 font-mono text-sm text-muted-foreground">
-                Firmware <span className="text-signal">→</span> web · Computer Engineering, Telkom University
+                Software <span className="text-signal">+</span> electrical · Computer Engineering, Telkom University
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
                 <Magnetic>
@@ -206,18 +206,18 @@ export default function HomeDesktop() {
 
         {/* About: text and timeline beside a skill map you can walk into. */}
         <section id="about" aria-labelledby="about-title" className="py-16">
-          <Heading title={<span id="about-title">One system, sensor to screen</span>} />
+          <Heading title={<span id="about-title">The code and the circuit</span>} />
           <div className="grid items-start gap-10 lg:grid-cols-[1fr_1fr]">
             <Reveal>
               <div className="space-y-4 text-lg leading-relaxed">
                 <p>
-                  I treat a system as one thing, from the sensor on the board to the screen an operator reads. Most of
-                  my projects have both halves: a device that measures or moves, and a web interface that makes its
-                  state clear.
+                  I work on both sides of the wire. I write web apps and firmware, and I also handle the electrical
+                  side: the wiring, the power, and the PCB it all sits on. Some projects are pure web, some are robots,
+                  and the ones I enjoy most need both.
                 </p>
                 <p className="text-muted-foreground">
-                  Lately that has meant ROS 2 navigation and STM32 firmware for a mobile robot, and competition
-                  projects in Next.js where the hard part was showing complicated data plainly.
+                  Lately that has meant ROS 2 on a Jetson Orin Nano and STM32 firmware for a mobile robot, KiCad
+                  boards for that robot and a line-following AGV, and competition projects in Next.js.
                 </p>
               </div>
               <h3 className="label mt-12">Education & organisation</h3>
@@ -248,7 +248,7 @@ export default function HomeDesktop() {
         >
           <div className="mx-auto flex max-w-6xl flex-col items-center px-8 pb-20 pt-24 text-center">
             <h2 id="contact-title" className="max-w-3xl text-balance text-5xl font-medium leading-[1.05] tracking-tight">
-              Building something with a sensor on one end and a screen on the other?
+              Need someone who can write the code and design the board?
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-muted-foreground">Email is the fastest way to reach me.</p>
             <ThreeCanvas setup={robotHead} className="mt-4 h-[340px] w-full max-w-xl lg:h-[380px]" />

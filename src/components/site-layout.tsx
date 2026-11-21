@@ -177,7 +177,7 @@ function RevealFooter() {
           <div>
             <p className="label">Raenaldi A. S.</p>
             <p className="mt-4 max-w-sm text-base leading-relaxed text-muted-foreground">
-              Robots, IoT, and the dashboards behind them. Computer Engineering, Telkom University.
+              Websites, robots, and the circuit boards inside them. Computer Engineering, Telkom University.
             </p>
           </div>
           <nav aria-label="Footer">

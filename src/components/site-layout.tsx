@@ -94,8 +94,11 @@ export function SiteLayout({ children, section, reveal = false }: { children: Re
 
         <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur-sm">
           <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
-            <a href="/" className="inline-flex h-11 items-center font-mono text-sm font-medium tracking-tight">
-              Raenaldi A. S.
+            <a href="/" className="inline-flex h-11 items-center transition-colors hover:text-signal">
+              {/* The splash in index.html flies its own copy of this name here; keep the type settings in step. */}
+              <span data-wordmark="" className="block whitespace-nowrap text-lg font-semibold leading-none tracking-[-0.025em]">
+                Raenaldi A. S.
+              </span>
             </a>
             <nav aria-label="Main">
               <ul className="flex items-center">
@@ -106,7 +109,7 @@ export function SiteLayout({ children, section, reveal = false }: { children: Re
                       <a
                         href={`/#${item.id}`}
                         aria-current={active ? "location" : undefined}
-                        className={`relative inline-flex h-11 items-center px-3 text-sm transition-colors duration-150 hover:text-foreground ${
+                        className={`relative inline-flex h-11 items-center px-2 text-sm sm:px-3 transition-colors duration-150 hover:text-foreground ${
                           active ? "text-foreground" : "text-muted-foreground"
                         }`}
                       >

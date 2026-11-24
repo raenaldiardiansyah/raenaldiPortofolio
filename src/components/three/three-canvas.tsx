@@ -1,4 +1,4 @@
-import { useEffect, useRef, type MutableRefObject } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import * as THREE from "three";
 import { cn } from "../../lib/utils";
 
@@ -36,6 +36,8 @@ export function ThreeCanvas<Api>({
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const setupRef = useRef(setup);
+  // A soft placeholder until the first frame is drawn (or WebGL turns out to be missing).
+  const [drawn, setDrawn] = useState(false);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -45,6 +47,7 @@ export function ThreeCanvas<Api>({
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     } catch {
+      setDrawn(true);
       return; // No WebGL: the page reads fine without the decoration.
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
@@ -92,6 +95,7 @@ export function ThreeCanvas<Api>({
     const clock = new THREE.Clock();
     let t = 0;
     let frame = 0;
+    let first = true;
     const tick = () => {
       frame = requestAnimationFrame(tick);
       const dt = Math.min(clock.getDelta(), 0.05);
@@ -100,6 +104,10 @@ export function ThreeCanvas<Api>({
       pointer.lerp(target, 1 - Math.exp(-dt * 4));
       handle.update(t, dt);
       renderer.render(scene, camera);
+      if (first) {
+        first = false;
+        setDrawn(true);
+      }
     };
     frame = requestAnimationFrame(tick);
 
@@ -134,6 +142,8 @@ export function ThreeCanvas<Api>({
       ref={hostRef}
       aria-hidden="true"
       className={cn("relative [&>canvas]:absolute [&>canvas]:inset-0 [&>canvas]:size-full", className)}
-    />
+    >
+      {!drawn && <div className="absolute inset-0 animate-pulse bg-foreground/[0.04] motion-reduce:animate-none" />}
+    </div>
   );
 }

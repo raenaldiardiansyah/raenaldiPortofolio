@@ -7,6 +7,7 @@ import { buttonLook, EMAIL, ExternalLink, GITHUB, LINKEDIN, SiteLayout, StatusTa
 import { Button } from "../components/ui/button";
 import BlurText from "../components/ui/BlurText";
 import ModelViewer from "../components/model-viewer";
+import { Skeleton } from "../components/ui/skeleton";
 import { landHome } from "../lib/scroll";
 
 export const skills: { group: string; items: string[] }[] = [
@@ -389,6 +390,31 @@ function MobileHome() {
 const DesktopHome = lazy(() => import("./HomeDesktop"));
 const DESKTOP = "(min-width: 768px)";
 
+// While the desktop home's code loads: the hero's shape (intro left, project recap right), so nothing jumps.
+const bone = "rounded-none motion-reduce:animate-none";
+function DesktopSkeleton() {
+  return (
+    <div className="desk min-h-screen" role="status">
+      <span className="sr-only">Loading</span>
+      <div className="h-14 border-b" />
+      <div className="mx-auto grid min-h-[640px] max-w-6xl items-center gap-10 px-8 py-16 lg:h-[calc(100svh-3.5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,36rem)]">
+        <div className="space-y-4">
+          <Skeleton className={`h-3 w-40 ${bone}`} />
+          <Skeleton className={`h-10 w-full max-w-md ${bone}`} />
+          <Skeleton className={`h-10 w-3/4 max-w-sm ${bone}`} />
+          <Skeleton className={`!mt-9 h-11 w-36 ${bone}`} />
+        </div>
+        <div className="flex h-[36rem] flex-col gap-1">
+          <Skeleton className="flex-1 rounded-2xl motion-reduce:animate-none" />
+          {Array.from({ length: 7 }, (_, i) => (
+            <Skeleton key={i} className="h-9 shrink-0 rounded-lg motion-reduce:animate-none" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [desktop, setDesktop] = useState(() => window.matchMedia(DESKTOP).matches);
   useEffect(() => {
@@ -399,7 +425,7 @@ export default function Home() {
   }, []);
   if (!desktop) return <MobileHome />;
   return (
-    <Suspense fallback={<div className="desk min-h-screen" />}>
+    <Suspense fallback={<DesktopSkeleton />}>
       <DesktopHome />
     </Suspense>
   );

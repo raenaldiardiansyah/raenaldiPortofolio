@@ -20,8 +20,9 @@ export interface Project {
   stack: string[];
   links: { label: string; href: string }[];
   image?: { src: string; alt: string; caption: string; width: number; height: number };
-  /** A 3D model shown on a turntable. `src` is an .obj with an .mtl of the same name beside it. */
-  model?: { src: string; label: string; caption: string };
+  /** A 3D model shown on a turntable. `src` is an .obj with an .mtl of the same name beside it.
+   * `navigation` adds a second view beside the hardware: the robot's navigation loop, simulated. */
+  model?: { src: string; label: string; caption: string; navigation?: boolean };
   overview: string[];
   highlights: string[];
   log?: { date: string; text: string }[];
@@ -48,6 +49,7 @@ export const projects: Project[] = [
       src: "/models/amr.obj",
       label: "3D model of the robot: an orange and black base with four wheels, a grey mast braced by two struts, and a Kinect sensor at the top",
       caption: "The large chassis, from the simulation model. Drag to turn it.",
+      navigation: true,
     },
     image: {
       src: "/images/amr-map.webp",

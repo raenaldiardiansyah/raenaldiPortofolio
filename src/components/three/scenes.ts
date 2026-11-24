@@ -22,7 +22,27 @@ const ROUTE = new THREE.CatmullRomCurve3(
   ),
 ).getSpacedPoints(300);
 
-export const lidarScene: SceneSetup = ({ scene, camera, renderer, pointer, reduceMotion }) => {
+/** What the navigation view reads off the simulation a few times a second. */
+export interface NavStats {
+  /** Share of the warehouse's surfaces on the map so far, 0..1. */
+  mapped: number;
+  /** Pure pursuit's curvature towards the goal point, 1/units; the sign is the turn direction. */
+  curvature: number;
+  /** How far along the route the robot is, 0..1. */
+  progress: number;
+}
+export interface NavControl {
+  paused: boolean;
+  report?: (stats: NavStats) => void;
+}
+
+/**
+ * The navigation simulation, looking down on the robot from above, framed for a small portrait panel.
+ * It can be paused and read through `control`.
+ */
+export const navigationScene =
+  (control: NavControl = { paused: false }): SceneSetup =>
+  ({ scene, camera, renderer, host, pointer, reduceMotion }) => {
   const points: number[] = [];
   const rand: number[] = [];
   const push = (x: number, y: number, z: number) => {
@@ -89,7 +109,7 @@ export const lidarScene: SceneSetup = ({ scene, camera, renderer, pointer, reduc
             float since = mod(uSweep + uHeading - atan(d.z, d.x), 6.2831853);
             vGlow = exp(-since * 1.4) * smoothstep(${range}, ${range} - 2.5, length(d.xz));
             // Mapped points stay on, dimly; the beam lights up whatever it is hitting now.
-            vAlpha = (aSeen * 0.32 + vGlow) * smoothstep(22.0, 8.0, length(position.xz));
+            vAlpha = aSeen * 0.32 + vGlow;
             gl_PointSize = (1.6 + vGlow * 2.6 + aRand * 0.9) * uPixel * (18.0 / -mv.z);
             gl_Position = projectionMatrix * mv;
           }`,
@@ -202,14 +222,54 @@ export const lidarScene: SceneSetup = ({ scene, camera, renderer, pointer, reduc
   let pose = start();
   let along = 0;
   let lastT = 0;
+  let clock = 0; // stands still while paused
+  let lastReport = -1;
   let finishedAt = -1;
   let focus = pose.x;
   const mapRange2 = (RANGE - 1.5) ** 2;
 
+  // Drag to look around. The turn and tilt are clamped so the racks and robot stay framed, and the view
+  // settles back to its own framing a moment after letting go.
+  const YAW = 0.5;
+  const drag = { yaw: 0, tilt: 0, yawGoal: 0, tiltGoal: 0, id: -1, x: 0, y: 0, released: 0 };
+  host.style.cursor = "grab";
+  host.style.touchAction = "pan-y"; // a vertical swipe still scrolls the page on touch screens
+  const onDown = (e: PointerEvent) => {
+    if (e.button !== 0) return;
+    Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY });
+    host.setPointerCapture(e.pointerId);
+    host.style.cursor = "grabbing";
+  };
+  const onMove = (e: PointerEvent) => {
+    if (e.pointerId !== drag.id) return;
+    const r = host.getBoundingClientRect();
+    drag.yawGoal = THREE.MathUtils.clamp(drag.yawGoal - ((e.clientX - drag.x) / r.width) * 2 * YAW, -YAW, YAW);
+    drag.tiltGoal = THREE.MathUtils.clamp(drag.tiltGoal + ((e.clientY - drag.y) / r.height) * 2, -1, 1);
+    drag.x = e.clientX;
+    drag.y = e.clientY;
+  };
+  const onUp = (e: PointerEvent) => {
+    if (e.pointerId !== drag.id) return;
+    drag.id = -1;
+    drag.released = performance.now();
+    host.style.cursor = "grab";
+  };
+  host.addEventListener("pointerdown", onDown);
+  host.addEventListener("pointermove", onMove);
+  host.addEventListener("pointerup", onUp);
+  host.addEventListener("pointercancel", onUp);
+
   return {
-    update(t) {
-      const dt = Math.min(Math.max(t - lastT, 0), 0.05);
+    update(t, frameDt) {
+      if (drag.id < 0 && performance.now() - drag.released > 2000) drag.yawGoal = drag.tiltGoal = 0;
+      const follow = Math.min(1, frameDt * 6);
+      drag.yaw += (drag.yawGoal - drag.yaw) * follow;
+      drag.tilt += (drag.tiltGoal - drag.tilt) * follow;
+
+      const dt = control.paused ? 0 : Math.min(Math.max(t - lastT, 0), 0.05);
       lastT = t;
+      clock += dt;
+      t = clock;
 
       // At the end of the aisle, hold a moment, then start a fresh exploration with an empty map.
       if (finishedAt >= 0 && t - finishedAt > 1.5) {
@@ -261,17 +321,27 @@ export const lidarScene: SceneSetup = ({ scene, camera, renderer, pointer, reduc
       }
       if (grew) seenAttr.needsUpdate = true;
 
-      // The camera follows the robot down the aisle.
+      if (control.report && (t - lastReport > 0.2 || lastReport < 0)) {
+        lastReport = t;
+        let count = 0;
+        for (let i = 0; i < seen.length; i++) count += seen[i];
+        control.report({ mapped: count / seen.length, curvature: step.curvature, progress: along / (ROUTE.length - 1) });
+      }
+
+      // From above and a little behind, following the robot; the cursor leans the view a little.
+      // Dragging orbits around the robot's stretch of aisle: up to 0.5 rad either way, 1 to 24 deg off vertical.
       focus += (pose.x - focus) * Math.min(1, dt * 2);
-      const orbit = 0.45 + pointer.x * 0.25;
-      const dist = 16;
-      camera.position.set(focus + Math.sin(orbit) * dist, 9 + pointer.y * 1.2, Math.cos(orbit) * dist);
-      // Looking past the robot puts it on the right, clear of the headline.
-      const side = new THREE.Vector3(-Math.cos(orbit), 0, Math.sin(orbit)).multiplyScalar(5.5);
-      camera.lookAt(focus + side.x, -0.8, side.z);
+      const polar = 0.22 + drag.tilt * 0.2;
+      const [ox, oz] = [Math.sin(polar) * Math.sin(drag.yaw), Math.sin(polar) * Math.cos(drag.yaw)];
+      camera.position.set(focus + ox * 25.5 + pointer.x * 1.2, Math.cos(polar) * 25.5, 0.3 + oz * 25.5 + pointer.y * 1.2);
+      camera.lookAt(focus, 0, 0.3);
     },
     dispose() {
       disposed = true;
+      host.removeEventListener("pointerdown", onDown);
+      host.removeEventListener("pointermove", onMove);
+      host.removeEventListener("pointerup", onUp);
+      host.removeEventListener("pointercancel", onUp);
     },
   };
 };

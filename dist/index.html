@@ -11,10 +11,114 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
     <title>Raenaldi Ardiansyah — Web, Robots & Electronics</title>
-    <script type="module" crossorigin src="/assets/index-9c5ofbVw.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DilfuiTD.css">
+    <style>
+      /* Splash: the name rises in the site's own type, holds while the app loads, then flies into the header (window.__splashReady). */
+      html.sp-on { overflow: hidden; }
+      html.sp-logo header [data-wordmark] { visibility: hidden; }
+      #splash { position: fixed; inset: 0; z-index: 100; pointer-events: none; color: #e4e0d6; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+      #splash .sp-veil { position: absolute; inset: 0; background: #0c0e0d; pointer-events: auto; }
+      /* Same face, weight, tracking and line height as the header wordmark, so one scale lands it there. */
+      #splash .sp-word { position: fixed; left: 0; top: 0; transform-origin: 0 0; white-space: nowrap;
+        font: 600 min(11vw, 96px)/1 "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.025em; }
+      #splash .sp-mask { display: inline-block; vertical-align: top; overflow: hidden; padding: .12em .08em; margin: -.12em -.08em; }
+      #splash .sp-ch { display: inline-block; transform: translateY(1.15em); }
+      #splash.go .sp-ch { animation: sp-rise 0.85s cubic-bezier(.22,1,.36,1) var(--d) forwards; }
+      @keyframes sp-rise { to { transform: none; } }
+      #splash .sp-line { position: absolute; left: 0; right: 0; bottom: -.22em; height: max(2px, .025em); background: #c5cf8a;
+        transform: scaleX(0); transform-origin: 0 50%; }
+      #splash.go .sp-line { animation: sp-grow .6s cubic-bezier(.65,0,.35,1) 1.19s forwards; }
+      @keyframes sp-grow { to { transform: none; } }
+      #splash .sp-label { position: fixed; left: 0; right: 0; top: calc(50% + min(9vw, 80px)); margin: 0; text-align: center;
+        font-size: 11px; letter-spacing: .24em; color: #8b8f87; opacity: 0; }
+      #splash.go .sp-label { animation: sp-fade .4s ease 1.44s forwards; }
+      @keyframes sp-fade { to { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) {
+        #splash *, #splash { animation-duration: 1ms !important; animation-delay: 0s !important; }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-C21PWTlu.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Z1CixoIu.css">
   </head>
   <body>
+    <div id="splash" role="status" aria-live="polite">
+      <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Loading the site</span>
+      <div class="sp-veil"></div>
+      <span class="sp-word" aria-hidden="true"><span class="sp-mask"><span class="sp-ch" style="--d:0.000s">R</span><span class="sp-ch" style="--d:0.045s">a</span><span class="sp-ch" style="--d:0.090s">e</span><span class="sp-ch" style="--d:0.135s">n</span><span class="sp-ch" style="--d:0.180s">a</span><span class="sp-ch" style="--d:0.225s">l</span><span class="sp-ch" style="--d:0.270s">d</span><span class="sp-ch" style="--d:0.315s">i</span><span class="sp-ch" style="--d:0.360s">&nbsp;</span><span class="sp-ch" style="--d:0.405s">A</span><span class="sp-ch" style="--d:0.450s">.</span><span class="sp-ch" style="--d:0.495s">&nbsp;</span><span class="sp-ch" style="--d:0.540s">S</span><span class="sp-ch" style="--d:0.585s">.</span></span><span class="sp-line"></span></span>
+      <p class="sp-label">LOADING <span class="sp-pct">0</span>%</p>
+    </div>
+    <script>
+      (function () {
+        var el = document.getElementById("splash");
+        if (!el) return;
+        var root = document.documentElement;
+        root.classList.add("sp-on", "sp-logo");
+        var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var word = el.querySelector(".sp-word"), veil = el.querySelector(".sp-veil"), pct = el.querySelector(".sp-pct");
+        var EASE = "cubic-bezier(.22,1,.36,1)";
+        // Centre the name; it is placed with a transform so it can later travel to the header with one.
+        function centre() {
+          var r = word.getBoundingClientRect();
+          word.style.transform = "translate(" + (innerWidth - r.width) / 2 + "px," + (innerHeight - r.height) / 2 + "px)";
+        }
+        var goAt = 0, ready = false, gone = false, p = 0;
+        // Letters wait for the real typeface, so they never rise in a fallback font and then jump.
+        function go() {
+          if (goAt) return;
+          goAt = performance.now();
+          centre();
+          el.classList.add("go");
+        }
+        Promise.resolve(document.fonts && document.fonts.load('600 64px "IBM Plex Sans"')).then(go, go);
+        setTimeout(go, 1500);
+        addEventListener("resize", centre);
+        var hold = reduce ? 0 : 1935; // the name and its underline are on the page by now
+        // Creeps towards 90% while loading, then fills once the app is ready.
+        var tick = setInterval(function () {
+          p = ready ? Math.min(100, p + 12) : p + (90 - p) * 0.05;
+          pct.textContent = Math.round(p);
+        }, 80);
+        function finish() { el.remove(); root.classList.remove("sp-logo"); }
+        function land() {
+          if (gone) return;
+          gone = true;
+          clearInterval(tick);
+          pct.textContent = "100";
+          removeEventListener("resize", centre);
+          root.classList.remove("sp-on");
+          var logo = document.querySelector("header [data-wordmark]");
+          if (reduce || !logo || !word.animate) {
+            el.style.transition = "opacity .3s";
+            el.style.opacity = "0";
+            return setTimeout(finish, 320);
+          }
+          // FLIP: same type settings in both, so matching the boxes lands every letter on the logo's own.
+          var to = logo.getBoundingClientRect(), from = word.getBoundingClientRect();
+          var move = 1000;
+          word.animate([{ transform: word.style.transform },
+            { transform: "translate(" + to.left + "px," + to.top + "px) scale(" + to.width / from.width + ")" }],
+            { duration: move, easing: EASE, fill: "forwards" });
+          el.querySelector(".sp-line").animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: "forwards" });
+          el.querySelector(".sp-label").animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
+          veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, delay: move * 0.3, easing: "ease-out", fill: "forwards" });
+          veil.style.pointerEvents = "none";
+          setTimeout(finish, move + 30);
+        }
+        window.__splashReady = function () {
+          if (ready) return;
+          ready = true;
+          Promise.resolve(document.fonts && document.fonts.ready).then(function () {
+            // Let the page lay out its header before measuring where the name lands.
+            requestAnimationFrame(function () {
+              (function wait() {
+                if (!goAt) return setTimeout(wait, 50);
+                setTimeout(land, Math.max(250, hold - (performance.now() - goAt)));
+              })();
+            });
+          });
+        };
+        setTimeout(window.__splashReady, 9000); // never hold the page back for long
+      })();
+    </script>
     <div id="root"></div>
   </body>
 </html>

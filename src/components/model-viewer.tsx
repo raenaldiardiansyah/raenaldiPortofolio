@@ -171,6 +171,8 @@ function ModelStage({ src, label, mode, onActivate }: { src: string; label: stri
         height: number;
         value: number;
         tag?: HTMLDivElement;
+        tagWidth?: number;
+        tagHeight?: number;
       }[] = [];
       const layout = mode === "turntable" ? [{ materials: Array.from(byMaterial.keys()), offset: [0, 0, 0] as [number, number, number] }] : AMR_PARTS;
       const used = new Set<string>();
@@ -387,6 +389,7 @@ function ModelStage({ src, label, mode, onActivate }: { src: string; label: stri
         turntable.updateMatrixWorld();
 
         // Labels follow their piece on screen and fade out as the robot closes up.
+        const placed: { tag: HTMLDivElement; left: number; y: number; h: number; right: boolean }[] = [];
         for (const p of pieces) {
           if (!p.tag) continue;
           projected.copy(p.anchor).add(p.holder.position);
@@ -395,9 +398,21 @@ function ModelStage({ src, label, mode, onActivate }: { src: string; label: stri
           const y = (-projected.y * 0.5 + 0.5) * h;
           const right = x >= w / 2;
           p.tag.style.flexDirection = right ? "row" : "row-reverse";
-          p.tag.style.transform = `translate(${right ? x - 3 : x + 3}px, ${y}px) translate(${right ? "0" : "-100%"}, -50%)`;
-          p.tag.style.opacity = String(Math.max(0, Math.min(1, (Math.min(p.value, 1) - 0.55) / 0.4)));
+          // Keep the whole label inside the panel; its text never changes, so its size is read once.
+          const tw = (p.tagWidth ||= p.tag.offsetWidth);
+          const left = right ? Math.min(x - 3, w - tw - 4) : Math.max(x + 3, tw + 4) - tw;
+          const opacity = Math.max(0, Math.min(1, (Math.min(p.value, 1) - 0.55) / 0.4));
+          p.tag.style.opacity = String(opacity);
+          placed.push({ tag: p.tag, left, y, h: (p.tagHeight ||= p.tag.offsetHeight), right });
         }
+        // Labels on the same side never stack on each other: each is pushed below the one above it.
+        for (const side of [true, false]) {
+          const column = placed.filter((l) => l.right === side).sort((a, b) => a.y - b.y);
+          column.forEach((l, i) => {
+            if (i) l.y = Math.max(l.y, column[i - 1].y + (column[i - 1].h + l.h) / 2 + 2);
+          });
+        }
+        for (const l of placed) l.tag.style.transform = `translate(${l.left}px, ${l.y}px) translateY(-50%)`;
         renderer.render(scene, camera);
       };
       frame = requestAnimationFrame(tick);
@@ -453,7 +468,11 @@ function ModelStage({ src, label, mode, onActivate }: { src: string; label: stri
       }`}
     >
       {state !== "ready" && (
-        <p className="absolute inset-0 flex items-center justify-center font-mono text-xs text-muted-foreground">
+        <p
+          className={`absolute inset-0 flex items-center justify-center font-mono text-xs text-muted-foreground ${
+            state === "loading" ? "animate-pulse bg-primary/5 motion-reduce:animate-none" : ""
+          }`}
+        >
           {state === "loading" ? "Loading 3D model…" : "The 3D model could not be loaded."}
         </p>
       )}

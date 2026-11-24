@@ -1,7 +1,7 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "wouter";
 import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
-import { ArrowRight, Mail } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Mail } from "lucide-react";
 import { projects } from "../data/projects";
 import { buttonLook, EMAIL, ExternalLink, GITHUB, LINKEDIN, SiteLayout, StatusTag } from "../components/site-layout";
 import { Button } from "../components/ui/button";
@@ -9,9 +9,11 @@ import BlurText from "../components/ui/BlurText";
 import ModelViewer from "../components/model-viewer";
 import { ThreeCanvas } from "../components/three/three-canvas";
 import { WorkMenu } from "../components/work-menu";
-import { lidarScene, robotHead } from "../components/three/scenes";
+import { RobotViews } from "../components/robot-views";
+import { robotHead } from "../components/three/scenes";
 import { SkillMap } from "../components/skill-map";
 import { landHome } from "../lib/scroll";
+import { splashReady } from "../lib/splash";
 import { experience, skills } from "./Home";
 
 const ease = [0.2, 0.7, 0.2, 1] as const;
@@ -54,6 +56,78 @@ function Magnetic({ children }: { children: ReactNode }) {
   );
 }
 
+const shown = projects.filter((p) => p.image);
+
+// Every project with a picture, as stacked rows: hover, focus or a first tap opens one into a landscape
+// panel (the screenshots are about 2:1), a second tap opens its write-up.
+function ProjectRecap() {
+  const [open, setOpen] = useState(0);
+  return (
+    <aside aria-labelledby="recap-title" className="rise [animation-delay:250ms]">
+      <h2 id="recap-title" className="sr-only">
+        Project recap
+      </h2>
+      <ol className="flex h-[36rem] flex-col gap-1">
+        {shown.map((p, i) => {
+          const isOpen = i === open;
+          return (
+            <motion.li
+              key={p.slug}
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.35 + i * 0.05, ease }}
+              className={`min-h-0 transition-[flex] duration-700 ease-out motion-reduce:transition-none ${isOpen ? "flex-[1_1_0%]" : "flex-[0_0_2.25rem]"}`}
+            >
+              <Link
+                href={`/work/${p.slug}`}
+                onMouseEnter={() => setOpen(i)}
+                onFocus={() => setOpen(i)}
+                onClick={(e) => {
+                  if (!isOpen) {
+                    e.preventDefault();
+                    setOpen(i);
+                  }
+                }}
+                className={`group relative block h-full overflow-hidden border transition-[border-radius] duration-700 ${isOpen ? "rounded-2xl" : "rounded-lg"}`}
+              >
+                <img
+                  src={p.image!.src}
+                  alt=""
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  className={`absolute inset-0 size-full object-cover transition-[transform,opacity] duration-700 motion-reduce:transition-none ${isOpen ? "scale-100 opacity-100" : "scale-110 opacity-0"}`}
+                />
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-0 transition-colors duration-700 ${isOpen ? "bg-gradient-to-t from-background from-5% via-background/70 via-35% to-transparent to-75%" : "bg-card group-hover:bg-muted"}`}
+                />
+                <span
+                  className={`absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 ${isOpen ? "p-5" : "h-full px-4"}`}
+                >
+                  <span className="flex min-w-0 items-baseline gap-3">
+                    <span className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="min-w-0">
+                      <span className={`block truncate ${isOpen ? "text-lg font-medium" : "text-sm text-muted-foreground group-hover:text-foreground"}`}>
+                        {p.title}
+                      </span>
+                      {isOpen && (
+                        <span className="block truncate font-mono text-xs text-muted-foreground">
+                          {p.status} · {p.timeline}
+                        </span>
+                      )}
+                    </span>
+                  </span>
+                  {isOpen && <ArrowUpRight aria-hidden="true" className="size-5 shrink-0 text-signal" />}
+                </span>
+              </Link>
+            </motion.li>
+          );
+        })}
+      </ol>
+    </aside>
+  );
+}
+
 function Heading({ title, aside }: { title: ReactNode; aside?: ReactNode }) {
   return (
     <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b pb-6">
@@ -70,6 +144,7 @@ export default function HomeDesktop() {
 
   // Runs after the first render, so the section a hash points at exists.
   useEffect(landHome, []);
+  useEffect(splashReady, []);
 
   return (
     <div className="desk min-h-screen overflow-x-clip">
@@ -79,59 +154,50 @@ export default function HomeDesktop() {
         className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-signal"
       />
       <SiteLayout reveal>
-        {/* Hero: full-bleed LiDAR sweep behind the intro. */}
-        <section className="relative left-1/2 flex min-h-[640px] w-screen -translate-x-1/2 items-end pb-20 lg:h-[calc(100svh-3.5rem)]">
-          <ThreeCanvas
-            setup={lidarScene}
-            className="absolute inset-0 [mask-image:linear-gradient(to_bottom,black_70%,transparent)]"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_10%_90%,hsl(var(--background)/0.9),transparent_40%)]"
-          />
-          <div className="relative mx-auto w-full max-w-6xl px-8">
-            <p className="label rise flex items-center gap-3">
-              <span className="relative flex size-2">
-                <span className="absolute inset-0 animate-ping rounded-full motion-reduce:animate-none bg-signal opacity-60" />
-                <span className="relative size-2 rounded-full bg-signal" />
-              </span>
-              Raenaldi A. S. · Bandung
-            </p>
-            <BlurText
-              as="h1"
-              text={"Websites, robots, and the circuit boards inside them."}
-              trigger="load"
-              delay={45}
-              blur={10}
-              distance={18}
-              direction="bottom"
-              className="mt-5 max-w-md text-4xl font-medium leading-[1.05] tracking-tight lg:max-w-lg lg:text-5xl"
-            />
-            <div className="rise [animation-delay:400ms]">
-              <p className="mt-6 font-mono text-sm text-muted-foreground">
-                Software <span className="text-signal">+</span> electrical · Computer Engineering, Telkom University
+        {/* Hero: the intro, with a recap of every project beside it. */}
+        <section className="relative left-1/2 flex min-h-[640px] w-screen -translate-x-1/2 items-center py-16 lg:h-[calc(100svh-3.5rem)]">
+          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,36rem)]">
+            <div>
+              <p className="label rise flex items-center gap-3">
+                <span className="relative flex size-2">
+                  <span className="absolute inset-0 animate-ping rounded-full motion-reduce:animate-none bg-signal opacity-60" />
+                  <span className="relative size-2 rounded-full bg-signal" />
+                </span>
+                Raenaldi A. S. · Bandung
               </p>
-              <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
-                <Magnetic>
-                  <Button asChild className={`${buttonLook.solid} border-signal bg-signal text-background`}>
-                    <a href="#work">
-                      See the work
-                      <ArrowRight aria-hidden="true" />
-                    </a>
-                  </Button>
-                </Magnetic>
-                <ExternalLink href={GITHUB}>GitHub</ExternalLink>
-                <ExternalLink href={LINKEDIN}>LinkedIn</ExternalLink>
-                <a href={`mailto:${EMAIL}`} className="link">
-                  Email
-                </a>
+              <BlurText
+                as="h1"
+                text={"Websites, robots, and the circuit boards inside them."}
+                trigger="load"
+                delay={45}
+                blur={10}
+                distance={18}
+                direction="bottom"
+                className="mt-5 max-w-md text-4xl font-medium leading-[1.05] tracking-tight lg:text-5xl"
+              />
+              <div className="rise [animation-delay:400ms]">
+                <p className="mt-6 font-mono text-sm text-muted-foreground">
+                  Software <span className="text-signal">+</span> electrical · Computer Engineering, Telkom University
+                </p>
+                <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <Magnetic>
+                    <Button asChild className={`${buttonLook.solid} border-signal bg-signal text-background`}>
+                      <a href="#work">
+                        See the work
+                        <ArrowRight aria-hidden="true" />
+                      </a>
+                    </Button>
+                  </Magnetic>
+                  <ExternalLink href={GITHUB}>GitHub</ExternalLink>
+                  <ExternalLink href={LINKEDIN}>LinkedIn</ExternalLink>
+                  <a href={`mailto:${EMAIL}`} className="link">
+                    Email
+                  </a>
+                </div>
               </div>
             </div>
+            <ProjectRecap />
           </div>
-          <p className="absolute right-8 top-6 hidden max-w-64 text-right font-mono text-xs leading-relaxed text-muted-foreground md:block">
-            Illustration: the AMR following its route with pure pursuit, mapping with a 2D LiDAR. Move the cursor to
-            look around.
-          </p>
         </section>
 
         {/* Now building */}
@@ -187,12 +253,16 @@ export default function HomeDesktop() {
               </Reveal>
               {current.model && (
                 <Reveal delay={0.1}>
-                  <figure>
-                    <ModelViewer src={current.model.src} label={current.model.label} parts />
-                    <figcaption className="pt-3 text-xs leading-relaxed text-muted-foreground">
-                      {current.model.caption}
-                    </figcaption>
-                  </figure>
+                  {current.model.navigation ? (
+                    <RobotViews model={current.model} />
+                  ) : (
+                    <figure>
+                      <ModelViewer src={current.model.src} label={current.model.label} parts />
+                      <figcaption className="pt-3 text-xs leading-relaxed text-muted-foreground">
+                        {current.model.caption}
+                      </figcaption>
+                    </figure>
+                  )}
                 </Reveal>
               )}
             </div>

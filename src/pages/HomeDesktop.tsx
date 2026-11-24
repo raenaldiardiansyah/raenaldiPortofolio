@@ -67,7 +67,8 @@ function ProjectRecap() {
       <h2 id="recap-title" className="sr-only">
         Project recap
       </h2>
-      <ol className="flex h-[36rem] flex-col gap-1">
+      {/* On short screens the rows tighten and the open panel shortens, so the whole list stays in view. */}
+      <ol className="flex h-[36rem] lg:h-[min(36rem,calc(100svh-7.5rem))] flex-col gap-1">
         {shown.map((p, i) => {
           const isOpen = i === open;
           return (
@@ -76,7 +77,7 @@ function ProjectRecap() {
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.35 + i * 0.05, ease }}
-              className={`min-h-0 transition-[flex] duration-700 ease-out motion-reduce:transition-none ${isOpen ? "flex-[1_1_0%]" : "flex-[0_0_2.25rem]"}`}
+              className={`min-h-0 transition-[flex] duration-700 ease-out motion-reduce:transition-none ${isOpen ? "flex-[1_1_0%]" : "flex-[0_0_clamp(1.75rem,4.5svh,2.25rem)]"}`}
             >
               <Link
                 href={`/work/${p.slug}`}
@@ -155,7 +156,7 @@ export default function HomeDesktop() {
       />
       <SiteLayout reveal>
         {/* Hero: the intro, with a recap of every project beside it. */}
-        <section className="relative left-1/2 flex min-h-[640px] w-screen -translate-x-1/2 items-center py-16 lg:h-[calc(100svh-3.5rem)]">
+        <section className="relative left-1/2 flex min-h-[640px] w-screen -translate-x-1/2 items-center py-16 lg:h-[calc(100svh-3.5rem)] lg:min-h-[30rem] lg:py-8">
           <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,36rem)]">
             <div>
               <p className="label rise flex items-center gap-3">

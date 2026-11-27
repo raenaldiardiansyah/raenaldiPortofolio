@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Two tones from the site theme: signal green tile, letter in the page background's near-black. -->
+  <rect width="64" height="64" rx="14" fill="#c5cf8a"/>
+  <path d="M21 50V15h13.5a9 9 0 0 1 0 18H21M33 33l12 17" fill="none" stroke="#0c0e0d" stroke-width="6.5" stroke-linejoin="round"/>
+</svg>

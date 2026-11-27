@@ -390,26 +390,21 @@ function MobileHome() {
 const DesktopHome = lazy(() => import("./HomeDesktop"));
 const DESKTOP = "(min-width: 768px)";
 
-// While the desktop home's code loads: the hero's shape (intro left, project recap right), so nothing jumps.
+// While the desktop home's code loads: the hero's shape (intro left, the stack visual right), so nothing jumps.
 const bone = "rounded-none motion-reduce:animate-none";
 function DesktopSkeleton() {
   return (
     <div className="desk min-h-screen" role="status">
       <span className="sr-only">Loading</span>
       <div className="h-14 border-b" />
-      <div className="mx-auto grid min-h-[640px] max-w-6xl items-center gap-10 px-8 py-16 lg:h-[calc(100svh-3.5rem)] lg:min-h-[30rem] lg:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,36rem)]">
+      <div className="mx-auto grid min-h-[640px] max-w-6xl items-center gap-10 px-8 py-16 lg:h-[calc(100svh-3.5rem)] lg:min-h-[30rem] lg:py-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="space-y-4">
           <Skeleton className={`h-3 w-40 ${bone}`} />
           <Skeleton className={`h-10 w-full max-w-md ${bone}`} />
           <Skeleton className={`h-10 w-3/4 max-w-sm ${bone}`} />
           <Skeleton className={`!mt-9 h-11 w-36 ${bone}`} />
         </div>
-        <div className="flex h-[36rem] lg:h-[min(36rem,calc(100svh-7.5rem))] flex-col gap-1">
-          <Skeleton className="flex-1 rounded-2xl motion-reduce:animate-none" />
-          {Array.from({ length: 7 }, (_, i) => (
-            <Skeleton key={i} className="h-[clamp(1.75rem,4.5svh,2.25rem)] shrink-0 rounded-lg motion-reduce:animate-none" />
-          ))}
-        </div>
+        <Skeleton className="mx-auto aspect-square w-full max-w-[min(100%,calc(100svh-8rem))] rounded-full opacity-40 motion-reduce:animate-none" />
       </div>
     </div>
   );

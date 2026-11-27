@@ -17,13 +17,14 @@ type Mode = "turntable" | "parts" | "expanded";
  * three.js is loaded only when a viewer mounts, so pages without a model do not pay for it.
  */
 // shortcut: `parts` always uses the AMR layout in amr-parts.ts, give the layout its own prop once a second model needs one.
-export default function ModelViewer({ src, label, parts = false }: { src: string; label: string; parts?: boolean }) {
+// `wide` turns the panel landscape from md up, for pages that give it the full content width.
+export default function ModelViewer({ src, label, parts = false, wide = false }: { src: string; label: string; parts?: boolean; wide?: boolean }) {
   const [open, setOpen] = useState(false);
   if (!parts) return <ModelStage src={src} label={label} mode="turntable" />;
 
   return (
     <>
-      <ModelStage src={src} label={label} mode="parts" onActivate={() => setOpen(true)} />
+      <ModelStage src={src} label={label} mode="parts" wide={wide} onActivate={() => setOpen(true)} />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="desk w-[94vw] max-w-6xl gap-0 rounded-none p-0 sm:rounded-none">
           <DialogTitle className="sr-only">{label}</DialogTitle>
@@ -41,7 +42,7 @@ export default function ModelViewer({ src, label, parts = false }: { src: string
   );
 }
 
-function ModelStage({ src, label, mode, onActivate }: { src: string; label: string; mode: Mode; onActivate?: () => void }) {
+function ModelStage({ src, label, mode, wide = false, onActivate }: { src: string; label: string; mode: Mode; wide?: boolean; onActivate?: () => void }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const activateRef = useRef(onActivate);
@@ -405,12 +406,17 @@ function ModelStage({ src, label, mode, onActivate }: { src: string; label: stri
           p.tag.style.opacity = String(opacity);
           placed.push({ tag: p.tag, left, y, h: (p.tagHeight ||= p.tag.offsetHeight), right });
         }
-        // Labels on the same side never stack on each other: each is pushed below the one above it.
+        // Labels on the same side never stack on each other: each is pushed below the one above it (the first
+        // below the top edge), then any pushed past the bottom edge are pushed back up, so the column stays inside.
         for (const side of [true, false]) {
           const column = placed.filter((l) => l.right === side).sort((a, b) => a.y - b.y);
           column.forEach((l, i) => {
-            if (i) l.y = Math.max(l.y, column[i - 1].y + (column[i - 1].h + l.h) / 2 + 2);
+            l.y = Math.max(l.y, i ? column[i - 1].y + (column[i - 1].h + l.h) / 2 + 2 : l.h / 2 + 4);
           });
+          for (let i = column.length - 1; i >= 0; i--) {
+            const l = column[i], below = column[i + 1];
+            l.y = Math.min(l.y, below ? below.y - (below.h + l.h) / 2 - 2 : h - l.h / 2 - 4);
+          }
         }
         for (const l of placed) l.tag.style.transform = `translate(${l.left}px, ${l.y}px) translateY(-50%)`;
         renderer.render(scene, camera);
@@ -464,7 +470,7 @@ function ModelStage({ src, label, mode, onActivate }: { src: string; label: stri
       className={`relative w-full select-none [&>canvas]:absolute [&>canvas]:inset-0 [&>canvas]:size-full ${
         mode === "expanded"
           ? "h-[78vh] cursor-grab touch-none bg-card active:cursor-grabbing"
-          : `aspect-[4/5] touch-pan-y border bg-card ${mode === "parts" ? "cursor-zoom-in" : "cursor-grab active:cursor-grabbing"}`
+          : `aspect-[4/5] touch-pan-y border bg-card ${wide ? "md:aspect-video md:max-h-[calc(100svh-7rem)]" : ""} ${mode === "parts" ? "cursor-zoom-in" : "cursor-grab active:cursor-grabbing"}`
       }`}
     >
       {state !== "ready" && (
@@ -475,11 +481,6 @@ function ModelStage({ src, label, mode, onActivate }: { src: string; label: stri
         >
           {state === "loading" ? "Loading 3D model…" : "The 3D model could not be loaded."}
         </p>
-      )}
-      {state === "ready" && mode === "parts" && (
-        <span className="pointer-events-none absolute bottom-3 left-3 border bg-background/70 px-2 py-1 font-mono text-xs text-muted-foreground backdrop-blur">
-          Point to assemble · click to enlarge
-        </span>
       )}
     </div>
   );

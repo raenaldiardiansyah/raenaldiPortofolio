@@ -60,8 +60,8 @@ export default function Project() {
 
         {p.model &&
           (p.model.navigation ? (
-            <div className="max-w-md pb-10 md:pb-14">
-              <RobotViews model={p.model} />
+            <div className="max-w-md pb-10 md:max-w-none md:pb-14">
+              <RobotViews model={p.model} wide />
             </div>
           ) : (
             <figure className="pb-10 md:pb-14">

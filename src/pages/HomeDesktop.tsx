@@ -1,7 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Link } from "wouter";
 import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
-import { ArrowRight, ArrowUpRight, Mail } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 import { projects } from "../data/projects";
 import { buttonLook, EMAIL, ExternalLink, GITHUB, LINKEDIN, SiteLayout, StatusTag } from "../components/site-layout";
 import { Button } from "../components/ui/button";
@@ -14,6 +14,7 @@ import { robotHead } from "../components/three/scenes";
 import { SkillMap } from "../components/skill-map";
 import { landHome } from "../lib/scroll";
 import { splashReady } from "../lib/splash";
+import SyntraHero from "../components/ui/syntra-hero";
 import { experience, skills } from "./Home";
 
 const ease = [0.2, 0.7, 0.2, 1] as const;
@@ -56,79 +57,6 @@ function Magnetic({ children }: { children: ReactNode }) {
   );
 }
 
-const shown = projects.filter((p) => p.image);
-
-// Every project with a picture, as stacked rows: hover, focus or a first tap opens one into a landscape
-// panel (the screenshots are about 2:1), a second tap opens its write-up.
-function ProjectRecap() {
-  const [open, setOpen] = useState(0);
-  return (
-    <aside aria-labelledby="recap-title" className="rise [animation-delay:250ms]">
-      <h2 id="recap-title" className="sr-only">
-        Project recap
-      </h2>
-      {/* On short screens the rows tighten and the open panel shortens, so the whole list stays in view. */}
-      <ol className="flex h-[36rem] lg:h-[min(36rem,calc(100svh-7.5rem))] flex-col gap-1">
-        {shown.map((p, i) => {
-          const isOpen = i === open;
-          return (
-            <motion.li
-              key={p.slug}
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.35 + i * 0.05, ease }}
-              className={`min-h-0 transition-[flex] duration-700 ease-out motion-reduce:transition-none ${isOpen ? "flex-[1_1_0%]" : "flex-[0_0_clamp(1.75rem,4.5svh,2.25rem)]"}`}
-            >
-              <Link
-                href={`/work/${p.slug}`}
-                onMouseEnter={() => setOpen(i)}
-                onFocus={() => setOpen(i)}
-                onClick={(e) => {
-                  if (!isOpen) {
-                    e.preventDefault();
-                    setOpen(i);
-                  }
-                }}
-                className={`group relative block h-full overflow-hidden border transition-[border-radius] duration-700 ${isOpen ? "rounded-2xl" : "rounded-lg"}`}
-              >
-                <img
-                  src={p.image!.src}
-                  alt=""
-                  loading={i === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                  className={`absolute inset-0 size-full object-cover transition-[transform,opacity] duration-700 motion-reduce:transition-none ${isOpen ? "scale-100 opacity-100" : "scale-110 opacity-0"}`}
-                />
-                <span
-                  aria-hidden="true"
-                  className={`absolute inset-0 transition-colors duration-700 ${isOpen ? "bg-gradient-to-t from-background from-5% via-background/70 via-35% to-transparent to-75%" : "bg-card group-hover:bg-muted"}`}
-                />
-                <span
-                  className={`absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 ${isOpen ? "p-5" : "h-full px-4"}`}
-                >
-                  <span className="flex min-w-0 items-baseline gap-3">
-                    <span className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
-                    <span className="min-w-0">
-                      <span className={`block truncate ${isOpen ? "text-lg font-medium" : "text-sm text-muted-foreground group-hover:text-foreground"}`}>
-                        {p.title}
-                      </span>
-                      {isOpen && (
-                        <span className="block truncate font-mono text-xs text-muted-foreground">
-                          {p.status} · {p.timeline}
-                        </span>
-                      )}
-                    </span>
-                  </span>
-                  {isOpen && <ArrowUpRight aria-hidden="true" className="size-5 shrink-0 text-signal" />}
-                </span>
-              </Link>
-            </motion.li>
-          );
-        })}
-      </ol>
-    </aside>
-  );
-}
-
 function Heading({ title, aside }: { title: ReactNode; aside?: ReactNode }) {
   return (
     <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b pb-6">
@@ -155,9 +83,9 @@ export default function HomeDesktop() {
         className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-signal"
       />
       <SiteLayout reveal>
-        {/* Hero: the intro, with a recap of every project beside it. */}
-        <section className="relative left-1/2 flex min-h-[640px] w-screen -translate-x-1/2 items-center py-16 lg:h-[calc(100svh-3.5rem)] lg:min-h-[30rem] lg:py-8">
-          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,36rem)]">
+        {/* Hero: the intro, with the stack of what I build beside it (circuit board up to browser). */}
+        {/* Choosing the open stack scrolls to the skill list in About, which the stack summarises. */}
+        <SyntraHero skillsTarget="#about">
             <div>
               <p className="label rise flex items-center gap-3">
                 <span className="relative flex size-2">
@@ -197,9 +125,7 @@ export default function HomeDesktop() {
                 </div>
               </div>
             </div>
-            <ProjectRecap />
-          </div>
-        </section>
+        </SyntraHero>
 
         {/* Now building */}
         {current && (
@@ -253,9 +179,9 @@ export default function HomeDesktop() {
                 </Link>
               </Reveal>
               {current.model && (
-                <Reveal delay={0.1}>
+                <Reveal delay={0.1} className="pt-2">
                   {current.model.navigation ? (
-                    <RobotViews model={current.model} />
+                    <RobotViews model={current.model} fill />
                   ) : (
                     <figure>
                       <ModelViewer src={current.model.src} label={current.model.label} parts />

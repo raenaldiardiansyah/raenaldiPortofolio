@@ -7,6 +7,7 @@
     <meta name="author" content="Raenaldi Ardiansyah Sidik" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -36,15 +37,15 @@
         #splash *, #splash { animation-duration: 1ms !important; animation-delay: 0s !important; }
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-CoaVnZH7.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CX8lRV5k.css">
+    <script type="module" crossorigin src="/assets/index-DIP-9hW9.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-C0guyM2c.css">
   </head>
   <body>
     <div id="splash" role="status" aria-live="polite">
       <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Loading the site</span>
       <div class="sp-veil"></div>
       <span class="sp-word" aria-hidden="true"><span class="sp-mask"><span class="sp-ch" style="--d:0.000s">R</span><span class="sp-ch" style="--d:0.045s">a</span><span class="sp-ch" style="--d:0.090s">e</span><span class="sp-ch" style="--d:0.135s">n</span><span class="sp-ch" style="--d:0.180s">a</span><span class="sp-ch" style="--d:0.225s">l</span><span class="sp-ch" style="--d:0.270s">d</span><span class="sp-ch" style="--d:0.315s">i</span><span class="sp-ch" style="--d:0.360s">&nbsp;</span><span class="sp-ch" style="--d:0.405s">A</span><span class="sp-ch" style="--d:0.450s">.</span><span class="sp-ch" style="--d:0.495s">&nbsp;</span><span class="sp-ch" style="--d:0.540s">S</span><span class="sp-ch" style="--d:0.585s">.</span></span><span class="sp-line"></span></span>
-      <p class="sp-label">LOADING <span class="sp-pct">0</span>%</p>
+      <p class="sp-label">LOADING</p>
     </div>
     <script>
       (function () {
@@ -53,14 +54,14 @@
         var root = document.documentElement;
         root.classList.add("sp-on", "sp-logo");
         var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-        var word = el.querySelector(".sp-word"), veil = el.querySelector(".sp-veil"), pct = el.querySelector(".sp-pct");
+        var word = el.querySelector(".sp-word"), veil = el.querySelector(".sp-veil");
         var EASE = "cubic-bezier(.22,1,.36,1)";
         // Centre the name; it is placed with a transform so it can later travel to the header with one.
         function centre() {
           var r = word.getBoundingClientRect();
           word.style.transform = "translate(" + (innerWidth - r.width) / 2 + "px," + (innerHeight - r.height) / 2 + "px)";
         }
-        var goAt = 0, ready = false, gone = false, p = 0;
+        var goAt = 0, ready = false, gone = false;
         // Letters wait for the real typeface, so they never rise in a fallback font and then jump.
         function go() {
           if (goAt) return;
@@ -72,17 +73,10 @@
         setTimeout(go, 1500);
         addEventListener("resize", centre);
         var hold = reduce ? 0 : 1935; // the name and its underline are on the page by now
-        // Creeps towards 90% while loading, then fills once the app is ready.
-        var tick = setInterval(function () {
-          p = ready ? Math.min(100, p + 12) : p + (90 - p) * 0.05;
-          pct.textContent = Math.round(p);
-        }, 80);
         function finish() { el.remove(); root.classList.remove("sp-logo"); }
         function land() {
           if (gone) return;
           gone = true;
-          clearInterval(tick);
-          pct.textContent = "100";
           removeEventListener("resize", centre);
           root.classList.remove("sp-on");
           var logo = document.querySelector("header [data-wordmark]");

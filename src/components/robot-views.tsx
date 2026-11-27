@@ -19,7 +19,17 @@ const VIEWS: { id: View; label: string; icon: ReactNode }[] = [
  * The robot two ways: its hardware taken apart, and its navigation loop running (LiDAR SLAM building the
  * map while pure pursuit steers along the route). Tabs switch between them; only the open one is on the GPU.
  */
-export function RobotViews({ model }: { model: { src: string; label: string; caption: string } }) {
+// `wide` turns both panels landscape from md up, for a page that gives them the full content width.
+// `fill` lets the panel take the height of its grid row from lg up, so it lines up with the text beside it.
+export function RobotViews({
+  model,
+  wide = false,
+  fill = false,
+}: {
+  model: { src: string; label: string };
+  wide?: boolean;
+  fill?: boolean;
+}) {
   const [view, setView] = useState<View>("hardware");
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -34,7 +44,7 @@ export function RobotViews({ model }: { model: { src: string; label: string; cap
   };
 
   return (
-    <figure>
+    <figure className={fill ? "lg:flex lg:h-full lg:flex-col" : undefined}>
       <div role="tablist" aria-label="How to look at the robot" onKeyDown={onKey} className="grid grid-cols-2 border border-b-0">
         {VIEWS.map((v, i) => {
           const on = v.id === view;
@@ -82,21 +92,24 @@ export function RobotViews({ model }: { model: { src: string; label: string; cap
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
+          className={fill ? "lg:min-h-80 lg:flex-1 lg:[&>div]:aspect-auto lg:[&>div]:h-full" : undefined}
         >
-          {view === "hardware" ? <ModelViewer src={model.src} label={model.label} parts /> : <NavigationView />}
+          {view === "hardware" ? <ModelViewer src={model.src} label={model.label} parts wide={wide} /> : <NavigationView wide={wide} />}
         </motion.div>
       </AnimatePresence>
 
-      <figcaption className="pt-3 text-xs leading-relaxed text-muted-foreground">
-        {view === "hardware"
-          ? model.caption
-          : "The navigation loop, simulated: the LiDAR maps a warehouse aisle while pure pursuit steers towards a goal point on the route. An illustration of the algorithm, not a recording. Drag to turn the view."}
-      </figcaption>
+      {/* The hardware view needs no caption; the navigation one says it is a simulation, not a recording. */}
+      {view !== "hardware" && (
+        <figcaption className="max-w-2xl pt-3 text-xs leading-relaxed text-muted-foreground">
+          The navigation loop, simulated: the LiDAR maps a warehouse aisle while pure pursuit steers towards a goal point on
+          the route. An illustration of the algorithm, not a recording. Drag to turn the view.
+        </figcaption>
+      )}
     </figure>
   );
 }
 
-function NavigationView() {
+function NavigationView({ wide }: { wide: boolean }) {
   const still = useReducedMotion() ?? false;
   const [paused, setPaused] = useState(false);
   const [stats, setStats] = useState<NavStats>({ mapped: 0, curvature: 0, progress: 0 });
@@ -112,7 +125,7 @@ function NavigationView() {
   const pct = Math.round(stats.mapped * 100);
 
   return (
-    <div className="relative aspect-[4/5] w-full border bg-card">
+    <div className={`relative aspect-[4/5] w-full border bg-card ${wide ? "md:aspect-video md:max-h-[calc(100svh-7rem)]" : ""}`}>
       <ThreeCanvas setup={setup} className="absolute inset-0" />
 
       {/* Readouts: what the robot knows right now. */}
